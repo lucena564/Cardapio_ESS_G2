@@ -38,6 +38,4 @@ Para que eu possa organizar os produtos do meu cardápio
     When clico em excluir ao lado da categoria "Sobremesas" e confirmo a exclusão
     Then a categoria "Sobremesas" não deve mais aparecer na lista
     And o sistema deve exibir uma mensagem de sucesso indicando que a categoria foi excluída
-    And as outras categorias devem permanecer inalteradas
-
-    
+    And as outras categorias devem permanecer inalteradas    
