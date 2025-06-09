@@ -32,3 +32,10 @@ Para que eu possa organizar os produtos do meu cardápio
     Then o sistema deve exibir uma mensagem de erro indicando que o nome é obrigatório
     And a categoria não deve ser criada
     And a lista de categorias deve permanecer inalterada
+
+    Scenario: Excluir uma categoria existente
+    Given a categoria "Sobremesas" está listada entre as existentes
+    When clico em excluir ao lado da categoria "Sobremesas" e confirmo a exclusão
+    Then a categoria "Sobremesas" não deve mais aparecer na lista
+    And o sistema deve exibir uma mensagem de sucesso indicando que a categoria foi excluída
+    And as outras categorias devem permanecer inalteradas
