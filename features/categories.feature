@@ -26,3 +26,9 @@ Para que eu possa organizar os produtos do meu cardápio
     Then a categoria "Bebidas" deve permanecer visível na lista
     And nenhuma mensagem de exclusão deve ser exibida
     And o sistema deve manter o estado anterior sem alterações
+
+    Scenario: Tentativa de criar uma nova categoria sem informar um nome
+    When tento criar uma nova categoria sem informar o nome e tento salvar
+    Then o sistema deve exibir uma mensagem de erro indicando que o nome é obrigatório
+    And a categoria não deve ser criada
+    And a lista de categorias deve permanecer inalterada
