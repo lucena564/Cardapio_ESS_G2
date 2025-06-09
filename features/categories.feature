@@ -26,3 +26,4 @@ Para que eu possa organizar os produtos do meu cardápio
     Then a categoria "Bebidas" deve permanecer visível na lista
     And nenhuma mensagem de exclusão deve ser exibida
     And o sistema deve manter o estado anterior sem alterações
+    Then a lista de categorias deve permanecer inalterada
