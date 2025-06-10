@@ -4,7 +4,7 @@ import time
 import inquirer
 import platform
 import os
-
+ 
 from constants import MAP, FRAMEWORKS
 
 def create_clickable_link(url, text):
