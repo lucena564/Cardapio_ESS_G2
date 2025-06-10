@@ -41,4 +41,5 @@ Feature: Sugestao de pedidos
     Then eu vejo o valor total da compra como "28.00"
     And eu vejo que nao ha mais itens na lista de sugeridos
     And eu vejo uma mensagem "Itens do carrinho nao geram sugestoes"
+    And eu vejo apenas "Refrigerante" no carrinho
 
