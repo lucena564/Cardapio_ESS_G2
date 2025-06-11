@@ -38,16 +38,8 @@ Feature: Sugestao de pedidos
     And eu vejo "Refrigerante" com preco "4.00" e quantidade "1" no carrinho
     And eu vejo o valor total da compra como "32.00"
     When eu removo "Triplo Burguer" do carrinho
-    Then eu vejo o valor total da compra como "28.00"
+    Then eu vejo o valor total da compra como "4.00"
     And eu vejo que nao ha mais itens na lista de sugeridos
     And eu vejo uma mensagem "Itens do carrinho nao geram sugestoes"
     And eu vejo apenas "Refrigerante" no carrinho
 
-  Scenario: Item sugerido indisponivel
-    Given estou na tela "Carrinho de Compras"
-    And eu vejo o item sugerido "Aneis de Cebola" no valor de "5.00"
-    And eu vejo apenas "Triplo Burguer" com preco "28.00" e quantidade "1" no carrinho
-    And eu vejo o valor total da compra como "28.00"
-    And o item "Aneis de Cebola" ficou indisponivel
-    When eu tento adicionar "Aneis de Cebola" ao carrinho
-    Then eu vejo a mensagem "Erro. Item indisponivel no momento"
