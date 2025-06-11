@@ -43,3 +43,11 @@ Feature: Sugestao de pedidos
     And eu vejo uma mensagem "Itens do carrinho nao geram sugestoes"
     And eu vejo apenas "Refrigerante" no carrinho
 
+  Scenario: Item sugerido indisponivel
+    Given estou na tela "Carrinho de Compras"
+    And eu vejo o item sugerido "Aneis de Cebola" no valor de "5.00"
+    And eu vejo apenas "Triplo Burguer" com preco "28.00" e quantidade "1" no carrinho
+    And eu vejo o valor total da compra como "28.00"
+    And o item "Aneis de Cebola" ficou indisponivel
+    When eu tento adicionar "Aneis de Cebola" ao carrinho
+    Then eu vejo a mensagem "Erro. Item indisponivel no momento"
