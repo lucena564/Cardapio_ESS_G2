@@ -1,0 +1,13 @@
+user.name=joao pedro marinho
+user.email=jpms3@cin.ufpe.br
+core.repositoryformatversion=0
+core.filemode=true
+core.bare=false
+core.logallrefupdates=true
+remote.origin.url=https://github.com/joaopedromarinho/Delivery_ESS_G2.git
+remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+branch.main.remote=origin
+branch.main.merge=refs/heads/main
+branch.main.vscode-merge-base=origin/main
+remote.upstream.url=https://github.com/lucena564/Delivery_ESS_G2.git
+remote.upstream.fetch=+refs/heads/*:refs/remotes/upstream/*
