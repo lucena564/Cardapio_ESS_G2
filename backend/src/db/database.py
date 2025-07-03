@@ -11,11 +11,15 @@ class Database():
 
     ID_LENGTH = 8
 
-    def __init__(self):
+    def __init__(self, use_db=False):
         self.db = None
-        self.connect()
+        self.use_db = use_db
+        if self.use_db:
+            self.connect()
+        else:
+            self.db = None
 
-
+        
     def connect(self):
         try:
             mongo_connection = MongoClient(env.DB_URL)
