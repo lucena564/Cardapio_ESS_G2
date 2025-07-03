@@ -1,10 +1,20 @@
 from typing import Optional
 from pydantic import BaseModel
+import sys
+if sys.version_info.minor >= (10):
+    from typing import Optional, Union
+
+from typing import Optional, Union
 
 class HttpResponseModel(BaseModel):
     message: str
     status_code: int
-    data: Optional[dict] | Optional[list] = None
+
+    if sys.version_info.minor >= (10):
+        # Essa forma de declaração só funciona pro python 3.10+
+        data: Optional[dict] | Optional[list] = None
+    else:
+        data: Optional[Union[dict, list]] = None
 
 class HTTPResponses:
 
