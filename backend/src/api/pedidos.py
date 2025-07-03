@@ -89,7 +89,10 @@ def get_pedidos_realizados():
 
         metodo: GET
         caminho: localhost:8000/pedidos
-        payload: {}    
+        payload: 
+        ```json
+        {}
+        ```
     """
     pedidos = ler_pedidos()
     return pedidos
@@ -99,19 +102,23 @@ def get_pedidos_realizados():
 @router.post("/", status_code=status.HTTP_201_CREATED, tags=["pedidos"])
 def fazer_pedido(pedido: Pedido):
     """
-        Endpoint para fazer um pedido em uma mesa específica.
+Endpoint para fazer um pedido em uma mesa específica.
 
-        metodo: POST
-        caminho: localhost:8000/pedidos
-        payload: {
-            "mesa": "mesa_1",
-            "itens": [
-                {"produto_id": "<id_de_dados.json>", "quantidade": x},
-                {"produto_id": "<id_de_dados.json>", "quantidade": y},
-                ...,
-                {"produto_id": "<id_de_dados.json>", "quantidade": z}
-            ]
-        }
+Método: POST  
+Caminho: /pedidos 
+
+Payload:
+```json
+{
+  "mesa": "mesa_1",
+  "itens": [
+    { "produto_id": "<id_de_dados.json>", "quantidade": x },
+    { "produto_id": "<id_de_dados.json>", "quantidade": y },
+    ...
+    { "produto_id": "<id_de_dados.json>", "quantidade": z }
+  ]
+}
+```
     """
 
     pedidos = ler_pedidos()
@@ -145,23 +152,26 @@ def fazer_pedido(pedido: Pedido):
 @router.put("/{mesa}", tags=["pedidos"])
 def modificar_pedido(mesa: str, pedido_mod: PedidoModificar):
     """
-        Endpoint para modificar um pedido existente em uma mesa específica.
+Endpoint para modificar um pedido existente em uma mesa específica.
 
-        metodo: PUT
-        caminho: localhost:8000/pedidos/{mesa}
-        payload:
-                {
-                    "itens": [
-                        {
-                            "produto_id": "B002",
-                            "quantidade": 1
-                        },
-                        {
-                            "produto_id": "O001",
-                            "quantidade": 1
-                        }
-                    ]
-                }
+Método: PUT  
+Caminho: /pedidos/{mesa}
+
+Payload:
+```json
+{
+  "itens": [
+    {
+      "produto_id": "B002",
+      "quantidade": 1
+    },
+    {
+      "produto_id": "O001",
+      "quantidade": 1
+    }
+  ]
+}
+```
     """
     pedidos = ler_pedidos()
     cardapio = ler_cardapio()
