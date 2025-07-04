@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.api import pedidos, cache
+from src.api import pedidos, cache, order_history
 # Esse import era o exemplo do banco que veio junto à configuração do projeto.
 # from src.api import items
 
@@ -11,3 +11,5 @@ api_router = APIRouter()
 api_router.include_router(pedidos.router, prefix="/pedidos", tags=["pedidos"])
 
 api_router.include_router(cache.router, prefix="/clear", tags=["pedidos"])
+
+api_router.include_router(order_history.router, prefix="/order_history", tags=["pedidos"])

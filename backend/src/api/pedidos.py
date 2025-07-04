@@ -7,6 +7,8 @@ from typing import List, Optional
 from Utils.constants import Constants
 import json
 import os
+from datetime import datetime
+import uuid
 
 router = APIRouter()
 
@@ -79,6 +81,25 @@ def calcular_total(itens_pedido, cardapio_produtos):
         else:
             raise HTTPException(status_code=400, detail=f"Produto ID {item.produto_id} não encontrado no cardápio")
     return round(total, 2)
+
+# Funções para histórico de pedidos
+def ler_historico() -> List[dict]:
+    """
+    Função para ler o histórico de pedidos do arquivo JSON.
+    Se o arquivo não existir ou estiver vazio, retorna uma lista vazia.
+    """
+    if not os.path.exists(Constants.HISTORY_FILE) or os.path.getsize(Constants.HISTORY_FILE) == 0:
+        return []
+    with open(Constants.HISTORY_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def salvar_historico(data: List[dict]):
+    """
+    Função para salvar o histórico de pedidos no arquivo JSON.
+    """
+    with open(Constants.HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
 
 
 # ENDPOINT 1 - GET pedidos realizados
@@ -203,3 +224,46 @@ Payload:
 
     else:
         raise HTTPException(status_code=400, detail="Nenhum dado para modificar fornecido")
+    
+# ENDPOINT 4 - POST fechar pedido e mover pro histórico
+@router.post("/fechar/{mesa}", status_code=status.HTTP_200_OK, tags=["pedidos"])
+def fechar_pedido(mesa: str):
+    """
+    Endpoint para fechar o pedido de uma mesa.
+    O pedido é movido para o histórico e a mesa é zerada.
+
+    Método: POST
+    Caminho: /pedidos/fechar/{mesa}
+    """
+    pedidos_ativos = ler_pedidos()
+
+    if mesa not in pedidos_ativos["mesas"]:
+        raise HTTPException(status_code=404, detail="Mesa não encontrada.")
+
+    mesa_data = pedidos_ativos[mesa]
+
+    if not mesa_data["pedidos"]:
+        raise HTTPException(status_code=400, detail="Não há pedido ativo para fechar nesta mesa.")
+
+    # Carrega o histórico de pedidos existente
+    historico = ler_historico()
+
+    # Cria o novo registro para o histórico com detalhes adicionais
+    pedido_finalizado = {
+        "id_historico": str(uuid.uuid4()),  # Gera um ID único para o registro
+        "mesa": mesa,
+        "itens": mesa_data["pedidos"],
+        "total": mesa_data["total"],
+        "data_fechamento": datetime.now().isoformat()  # Adiciona data e hora do fechamento
+    }
+
+    # Adiciona o pedido finalizado ao histórico e salva o arquivo
+    historico.append(pedido_finalizado)
+    salvar_historico(historico)
+
+    # Limpa os dados da mesa no arquivo de pedidos ativos
+    pedidos_ativos[mesa]["pedidos"] = []
+    pedidos_ativos[mesa]["total"] = 0
+    salvar_pedidos(pedidos_ativos)
+
+    return {"message": f"Pedido da {mesa} fechado com sucesso e movido para o histórico.", "pedido_arquivado": pedido_finalizado}
