@@ -24,6 +24,7 @@ class ProdutoCreate(BaseModel):
 class Produto(ProdutoCreate):
     ID: str
 
+# TODO: Colocar usar o arquivo constants.py, importando a classe Constants para modularizar, essa constante já está mapeada lá.
 # 2. Lógica de Acesso ao Banco de Dados
 DB_FILE = "data/dados.json" # O caminho para o seu arquivo JSON
 
