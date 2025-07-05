@@ -1,11 +1,5 @@
 {
-  "categorias": [
-    "BEBIDAS",
-    "LANCHES",
-    "PIZZAS",
-    "SOBREMESAS",
-    "OUTROS"
-  ],
+  "categorias": ["BEBIDAS", "LANCHES", "PIZZAS", "SOBREMESAS", "OUTROS"],
   "produtos": [
     {
       "ID": "B001",
@@ -160,11 +154,11 @@
       "CATEGORIA": "OUTROS"
     },
     {
-      "ID": "O004",
-      "NOME": "Anéis de Cebola Empanados",
-      "DESCRICAO": "Porção de 12 anéis de cebola empanados e fritos.",
+      "ID": "O003",
+      "NOME": "Molho Extra (Maionese da casa)",
+      "DESCRICAO": "Pote de 50g da nossa maionese especial.",
       "DESCONTO": 0,
-      "PRECO": 22.0,
+      "PRECO": 3.0,
       "CATEGORIA": "OUTROS"
     }
   ]
