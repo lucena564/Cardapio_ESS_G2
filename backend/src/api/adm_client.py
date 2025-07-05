@@ -6,8 +6,7 @@ from typing import List, Optional, Dict, Any
 import json
 import uuid
 
-# --- 1. Modelos de Dados (Pydantic) ---
-# A definição da "forma" dos seus dados agora vive aqui.
+# 1. Modelos de Dados
 class ProdutoUpdate(BaseModel):
     NOME: Optional[str] = None
     DESCRICAO: Optional[str] = None
@@ -25,8 +24,7 @@ class ProdutoCreate(BaseModel):
 class Produto(ProdutoCreate):
     ID: str
 
-# --- 2. Lógica de Acesso ao Banco de Dados ---
-# As funções para ler e salvar o seu "banco de dados" também ficam aqui.
+# 2. Lógica de Acesso ao Banco de Dados
 DB_FILE = "data/dados.json" # O caminho para o seu arquivo JSON
 
 def carregar_db() -> Dict[str, List[Dict[str, Any]]]:
@@ -44,7 +42,7 @@ def salvar_db(data: Dict[str, List[Dict[str, Any]]]):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-# --- 3. Definição do Router e Rotas da API ---
+# 3. Definição do Router e Rotas da API
 # O router e todas as suas rotas de admin para gerenciar itens.
 router = APIRouter()
 
@@ -101,5 +99,4 @@ def remover_item(item_id: str):
 
     db_data['produtos'].remove(produto_para_remover)
     salvar_db(db_data)
-    # Com status 204, o FastAPI não envia corpo na resposta.
     return
