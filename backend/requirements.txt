@@ -1,5 +1,9 @@
 fastapi
 uvicorn[standard]
+pydantic
+pymongo
+python-dotenv
 pytest
+pytest-mongodb
 pytest-bdd
-requests
+httpx
