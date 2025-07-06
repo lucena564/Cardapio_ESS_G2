@@ -1,4 +1,3 @@
-from fastapi import APIRouter, status
 from src.schemas.response import HttpResponseModel
 from src.service.impl.item_service import ItemService
 from fastapi import APIRouter, HTTPException, status
@@ -82,7 +81,7 @@ def calcular_total(itens_pedido, cardapio_produtos):
 
 
 # ENDPOINT 1 - GET pedidos realizados
-@router.get("/", tags=["pedidos"])
+@router.get("/", status_code=status.HTTP_200_OK, tags=["pedidos"])
 def get_pedidos_realizados():
     """
         Endpoint para obter os pedidos realizados.
@@ -149,7 +148,7 @@ Payload:
 
 
 # ENDPOINT 3 - PUT modificar pedido
-@router.put("/{mesa}", tags=["pedidos"])
+@router.put("/{mesa}", status_code=status.HTTP_200_OK, tags=["pedidos"])
 def modificar_pedido(mesa: str, pedido_mod: PedidoModificar):
     """
 Endpoint para modificar um pedido existente em uma mesa específica.
