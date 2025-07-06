@@ -18,6 +18,11 @@ if not os.path.exists(Constants.PEDIDOS_FILE):
     with open(Constants.PEDIDOS_FILE, "w", encoding="utf-8") as f:
         json.dump(base, f, indent=2, ensure_ascii=False)
 
+if not os.path.exists(Constants.CARDAPIO_FILE):
+    base = Constants.CARDAPIO_DEFAULT
+    with open(Constants.CARDAPIO_FILE, "w", encoding="utf-8") as f:
+        json.dump(base, f, indent=2, ensure_ascii=False)
+
 app = FastAPI()
 
 app.add_middleware(
