@@ -6,20 +6,19 @@ from Utils.constants import Constants
 import json
 import os
 
+# Cria o arquivo defalt do `pedidos_realizados.json` caso não exista
 if not os.path.exists(Constants.PEDIDOS_FILE):
-    base = {
-        "mesas": ["mesa_1", "mesa_2", "mesa_3", "mesa_4", "mesa_5"],
-        "mesa_1": {"pedidos": [], "total": 0},
-        "mesa_2": {"pedidos": [], "total": 0},
-        "mesa_3": {"pedidos": [], "total": 0},
-        "mesa_4": {"pedidos": [], "total": 0},
-        "mesa_5": {"pedidos": [], "total": 0}
-    }
+
+    base = Constants.PEDIDOS_REALIZADOS_DEFAULT
+
     with open(Constants.PEDIDOS_FILE, "w", encoding="utf-8") as f:
         json.dump(base, f, indent=2, ensure_ascii=False)
 
+# Cria o arquivo defalt do `dados.json` caso não exista
 if not os.path.exists(Constants.CARDAPIO_FILE):
+
     base = Constants.CARDAPIO_DEFAULT
+
     with open(Constants.CARDAPIO_FILE, "w", encoding="utf-8") as f:
         json.dump(base, f, indent=2, ensure_ascii=False)
 

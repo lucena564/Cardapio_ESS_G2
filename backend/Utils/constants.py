@@ -2,6 +2,15 @@ class Constants:
     PEDIDOS_FILE = "data/pedidos_realizados.json"
     CARDAPIO_FILE = "data/dados.json"
 
+    PEDIDOS_REALIZADOS_DEFAULT = {
+        "mesas": ["mesa_1", "mesa_2", "mesa_3", "mesa_4", "mesa_5"],
+        "mesa_1": {"pedidos": [], "total": 0},
+        "mesa_2": {"pedidos": [], "total": 0},
+        "mesa_3": {"pedidos": [], "total": 0},
+        "mesa_4": {"pedidos": [], "total": 0},
+        "mesa_5": {"pedidos": [], "total": 0}
+    }
+
     CARDAPIO_DEFAULT = {
     "categorias": [
         "BEBIDAS",
