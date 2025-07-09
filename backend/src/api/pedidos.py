@@ -248,9 +248,16 @@ def fechar_pedido(mesa: str):
     # Carrega o histórico de pedidos existente
     historico = ler_historico()
 
+    novo_id_numerico = 1
+    if historico: # Verifica se a lista de histórico não está vazia
+        # Pega o ID do último item, converte para inteiro e soma 1
+        ultimo_id = int(historico[-1]['id_historico'])
+        novo_id_numerico = ultimo_id + 1
+    id_final_formatado = f"{novo_id_numerico:04d}"
+
     # Cria o novo registro para o histórico com detalhes adicionais
     pedido_finalizado = {
-        "id_historico": str(uuid.uuid4()),  # Gera um ID único para o registro
+        "id_historico": id_final_formatado,  # Gera um ID único para o registro
         "mesa": mesa,
         "itens": mesa_data["pedidos"],
         "total": mesa_data["total"],
