@@ -12,4 +12,4 @@ api_router.include_router(pedidos.router, prefix="/pedidos", tags=["pedidos"])
 
 api_router.include_router(cache.router, prefix="/clear", tags=["pedidos"])
 
-api_router.include_router(order_history.router, prefix="/order_history", tags=["pedidos"])
+api_router.include_router(order_history.router, prefix="/historico", tags=["historico"])
