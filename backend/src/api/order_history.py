@@ -61,13 +61,24 @@ def ler_historico() -> List[dict]:
         return json.load(f)
 
 # ENDPOINT - GET /historico
-@router.get("/", status_code=status.HTTP_200_OK, tags=["historico"])
-def get_historico_pedidos():
+@router.get("/{mesa}", status_code=status.HTTP_200_OK, tags=["historico"])
+def get_historico_pedidos(mesa: str):
     """
     Endpoint para obter o histórico de todos os pedidos já finalizados.
 
     Metodo: GET
-    Caminho: http://localhost:8000/historico
+    Caminho: http://localhost:8000/historico/{nome_mesa}
+    Exemplo: http://localhost:8000/historico/mesa_1
     """
     historico = ler_historico()
-    return historico
+    # Filtra a lista de histórico para encontrar apenas os pedidos da mesa especificada
+    historico_da_mesa = [pedido for pedido in historico if pedido.get("mesa") == mesa]
+
+    # Se, após filtrar, a lista estiver vazia, significa que a mesa não tem histórico
+    if not historico_da_mesa:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Nenhum histórico encontrado para a {mesa}. Verifique se a mesa existe ou se já finalizou algum pedido."
+        )
+
+    return historico_da_mesa
