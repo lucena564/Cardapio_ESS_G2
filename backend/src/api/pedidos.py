@@ -261,7 +261,8 @@ def fechar_pedido(mesa: str):
         "mesa": mesa,
         "itens": mesa_data["pedidos"],
         "total": mesa_data["total"],
-        "data_fechamento": datetime.now().isoformat()  # Adiciona data e hora do fechamento
+        "data_fechamento": datetime.now().isoformat(),
+        "status": "Em andamento"
     }
 
     # Adiciona o pedido finalizado ao histórico e salva o arquivo
