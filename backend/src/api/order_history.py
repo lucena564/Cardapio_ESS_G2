@@ -39,6 +39,9 @@ class OrderCreate(BaseModel):
 class OrderUpdate(BaseModel):
     status: StatusPedido
 
+class DeleteRequest(BaseModel):
+    ids_historico: List[str]
+
 
 def ler_historico() -> List[dict]:
     """
@@ -131,6 +134,7 @@ def get_historico_pedidos(mesa: str):
 
     return historico_da_mesa
 
+# ENDPOINT - PUT /historico
 @router.put("/{id_historico}", status_code=status.HTTP_200_OK, tags=["historico"])
 def put_historico_pedidos(id_historico: str, pedido_atualizado: Order):
     """
@@ -180,3 +184,29 @@ def put_historico_pedidos(id_historico: str, pedido_atualizado: Order):
     
     # Retorna o objeto atualizado
     return dados_atualizados_dict
+
+# ENDPOINT - DELETE /historico
+@router.delete("/", status_code=status.HTTP_200_OK, tags=["historico"])
+def delete_historico_pedidos(req: DeleteRequest):
+    """
+    Endpoint para deletar um ou mais pedidos do histórico (versão recomendada).
+    """
+    historico_original = ler_historico()
+    ids_a_remover = req.ids_historico
+    
+    tamanho_original = len(historico_original)
+    
+    historico_atualizado = [
+        pedido for pedido in historico_original 
+        if pedido.get("id_historico") not in ids_a_remover
+    ]
+    
+    if len(historico_atualizado) == tamanho_original:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Nenhum dos IDs fornecidos foi encontrado no histórico."
+        )
+
+    salvar_historico(historico_atualizado)
+    
+    return {"message": "Pedidos selecionados foram removidos com sucesso."}
