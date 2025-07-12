@@ -1,13 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime, timedelta
 from enum import Enum
-import uuid
 import json
 import os
 from Utils.constants import Constants
-
 
 router = APIRouter()
 
@@ -62,6 +59,55 @@ def salvar_historico(data: List[dict]):
     with open(Constants.HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
+# copiei essa função de pedidos.py pq n consegui só importar e usar
+def ler_cardapio():
+    """
+        Função para ler o cardápio de produtos do arquivo JSON.
+        Se o arquivo não existir, levanta uma exceção.
+    """
+    with open(Constants.CARDAPIO_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def expandir_detalhes_pedido(pedido_historico):
+    """
+    Recebe um pedido do histórico e a lista de produtos do cardápio,
+    e retorna o pedido com os detalhes de cada item expandidos.
+    """
+    # Cria um mapa de produtos para busca rápida (ID -> detalhes do produto)
+    # Isso é muito mais eficiente do que percorrer a lista para cada item.
+    dados = ler_cardapio()
+    mapa_produtos = {produto["ID"]: produto for produto in dados.get("produtos")}
+
+    itens_expandidos = []
+    for item_simples in pedido_historico.get("itens", []):
+        produto_id = item_simples.get("produto_id")
+        produto_detalhes = mapa_produtos.get(produto_id)
+
+        if produto_detalhes:
+            # Encontrou o produto, cria o item detalhado
+            item_expandido = {
+                "produto_id": produto_id,
+                "nome": produto_detalhes.get("NOME"), # Use as chaves do seu JSON (NOME, PRECO)
+                "quantidade": item_simples.get("quantidade"),
+                "valor_unitario": produto_detalhes.get("PRECO")
+            }
+            itens_expandidos.append(item_expandido)
+        else:
+            # Opcional: Lida com o caso de um produto não ser encontrado no cardápio
+            item_expandido = {
+                "produto_id": produto_id,
+                "nome": "Produto não encontrado",
+                "quantidade": item_simples.get("quantidade"),
+                "valor_unitario": 0
+            }
+            itens_expandidos.append(item_expandido)
+
+    # Cria uma cópia do pedido original e substitui a lista de 'itens'
+    pedido_expandido = pedido_historico.copy()
+    pedido_expandido["itens"] = itens_expandidos
+
+    return pedido_expandido
+
 # ENDPOINT - GET /historico
 @router.get("/{mesa}", status_code=status.HTTP_200_OK, tags=["historico"])
 def get_historico_pedidos(mesa: str):
@@ -111,8 +157,8 @@ def put_historico_pedidos(id_historico: str, pedido_atualizado: Order):
     ```
     """
     historico = ler_historico()
-    # Filtra a lista de histórico para encontrar apenas os pedidos da mesa especificada
 
+    # Filtra histórico pelo id do item a substituir 
     idx_pedido = -1
     for i, pedido in enumerate(historico):
         if pedido.get("id_historico") == id_historico:
