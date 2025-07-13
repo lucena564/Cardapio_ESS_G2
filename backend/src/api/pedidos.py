@@ -262,7 +262,7 @@ def fechar_pedido(mesa: str):
         "itens": mesa_data["pedidos"],
         "total": mesa_data["total"],
         "data_fechamento": datetime.now().isoformat(),
-        "status": "Em andamento"
+        "status": "em andamento"
     }
     pedido_finalizado = expandir_detalhes_pedido(pedido)  # Expande os detalhes dos itens
 

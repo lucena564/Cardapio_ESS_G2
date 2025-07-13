@@ -168,7 +168,7 @@ def delete_historico_pedidos(req: DeleteRequest):
     
     return {"message": "Pedidos selecionados foram removidos com sucesso."}
 
-@router.get("{mesa}/filtrar", tags=["historico"], response_model=List[Order]) 
+@router.get("/{mesa}/filtrar", tags=["historico"], response_model=List[Order])
 def filtrar_historico(
     mesa: str,
     nome_item: Optional[str] = Query(None, description="Filtrar por nome parcial do item."),
@@ -184,25 +184,31 @@ def filtrar_historico(
     Exemplo: http://localhost:8000/historico/mesa_1/filtrar
     """
     historico = ler_historico()
+    # Filtra a lista de histórico para encontrar apenas os pedidos da mesa especificada
     historico_da_mesa = [pedido for pedido in historico if pedido.get("mesa") == mesa]
 
-
-    # Filtra a lista de histórico para encontrar apenas os pedidos da mesa especificada
+    # Filtro por STATUS
     if status:
-        # Mantém na lista apenas os pedidos cujo status corresponde ao filtro (ignorando maiúsculas/minúsculas)
-        historico_da_mesa = [p for p in historico_da_mesa if p.get('status', '').lower() == status.lower()]
+        historico_da_mesa = [
+            p for p in historico_da_mesa
+            if p.get('status', '').lower() == status.lower()
+        ]
 
     # Filtro por DATA
     if data:
-        # Mantém apenas os pedidos cuja data de fechamento começa com a data fornecida
-        historico_da_mesa = [p for p in historico_da_mesa if p.get('data_fechamento', '').startswith(data)]
+        historico_da_mesa = [
+            p for p in historico_da_mesa
+            if p.get('data_fechamento', '').startswith(data)
+        ]
 
     # Filtro por NOME DO ITEM
     if nome_item:
         pedidos_filtrados = []
         for pedido in historico_da_mesa:
-            # Verifica se QUALQUER item dentro do pedido contém o nome pesquisado
-            if any(nome_item.lower() in item.get('nome', '').lower() for item in pedido.get('itens', [])):
+            if any(
+                nome_item.lower() in item.get('nome', '').lower()
+                for item in pedido.get('itens', [])
+            ):
                 pedidos_filtrados.append(pedido)
         historico_da_mesa = pedidos_filtrados
 
@@ -210,8 +216,10 @@ def filtrar_historico(
     if categoria:
         pedidos_filtrados = []
         for pedido in historico_da_mesa:
-            # Verifica se QUALQUER item dentro do pedido pertence à categoria pesquisada
-            if any(item.get('categoria', '').lower() == categoria.lower() for item in pedido.get('itens', [])):
+            if any(
+                item.get('categoria', '').lower() == categoria.lower()
+                for item in pedido.get('itens', [])
+            ):
                 pedidos_filtrados.append(pedido)
         historico_da_mesa = pedidos_filtrados
 
