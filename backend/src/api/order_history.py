@@ -19,10 +19,10 @@ class StatusPedido(str, Enum):
 # Models
 class ItemPedido(BaseModel):
     produto_id: str
-    #nome: str
+    nome: str
     quantidade: int
-    #preco_unitario: float
-    #observacoes: Optional[str] = None
+    valor_unitario: float
+    categoria: str
 
 class Order(BaseModel):
     id_historico: str # 4 digitos
@@ -64,16 +64,6 @@ def ler_historico() -> List[dict]:
 def salvar_historico(data: List[dict]):
     with open(Constants.HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
-
-# Copiei essa função de pedidos.py pq n consegui só importar e usar
-def ler_cardapio():
-    """
-        Função para ler o cardápio de produtos do arquivo JSON.
-        Se o arquivo não existir, levanta uma exceção.
-    """
-    with open(Constants.CARDAPIO_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
 
 # ENDPOINT - GET /historico
 @router.get("/{mesa}", status_code=status.HTTP_200_OK, tags=["historico"])
@@ -178,7 +168,7 @@ def delete_historico_pedidos(req: DeleteRequest):
     
     return {"message": "Pedidos selecionados foram removidos com sucesso."}
 
-@router.get("{mesa}/filtrar/", tags=["historico"], response_model=List[Order]) 
+@router.get("{mesa}/filtrar", tags=["historico"], response_model=List[Order]) 
 def filtrar_historico(
     mesa: str,
     nome_item: Optional[str] = Query(None, description="Filtrar por nome parcial do item."),
@@ -207,9 +197,6 @@ def filtrar_historico(
         # Mantém apenas os pedidos cuja data de fechamento começa com a data fornecida
         historico_da_mesa = [p for p in historico_da_mesa if p.get('data_fechamento', '').startswith(data)]
 
-
-
-# PAREI AQUI, o problema é que eu não tenho nome e categoria dos itens dentro do historico
     # Filtro por NOME DO ITEM
     if nome_item:
         pedidos_filtrados = []
@@ -228,5 +215,4 @@ def filtrar_historico(
                 pedidos_filtrados.append(pedido)
         historico_da_mesa = pedidos_filtrados
 
-    # 3. Retorna a lista resultante (pode ser vazia se nenhum resultado for encontrado)
     return historico_da_mesa

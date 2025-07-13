@@ -255,7 +255,6 @@ def fechar_pedido(mesa: str):
         novo_id_numerico = ultimo_id + 1
     id_final_formatado = f"{novo_id_numerico:04d}"
 
-
     # Cria o novo registro para o histórico com detalhes adicionais
     pedido = {
         "id_historico": id_final_formatado,  # Gera um ID único para o registro
@@ -265,7 +264,7 @@ def fechar_pedido(mesa: str):
         "data_fechamento": datetime.now().isoformat(),
         "status": "Em andamento"
     }
-    pedido_finalizado = expandir_detalhes_pedido(pedido)
+    pedido_finalizado = expandir_detalhes_pedido(pedido)  # Expande os detalhes dos itens
 
     # Adiciona o pedido finalizado ao histórico e salva o arquivo
     historico.append(pedido_finalizado)
