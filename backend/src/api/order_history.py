@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from pydantic import BaseModel
 from typing import List, Optional
 from enum import Enum
@@ -42,6 +42,10 @@ class OrderUpdate(BaseModel):
 class DeleteRequest(BaseModel):
     ids_historico: List[str]
 
+class OrderFilter(BaseModel):
+    tipo: str
+    valor:
+
 
 def ler_historico() -> List[dict]:
     """
@@ -51,7 +55,6 @@ def ler_historico() -> List[dict]:
     if not os.path.exists(Constants.HISTORY_FILE):
         return []
     
-    # Se o arquivo estiver vazio, evitamos um erro de JSON
     if os.path.getsize(Constants.HISTORY_FILE) == 0:
         return []
 
@@ -62,7 +65,7 @@ def salvar_historico(data: List[dict]):
     with open(Constants.HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-# copiei essa função de pedidos.py pq n consegui só importar e usar
+# Copiei essa função de pedidos.py pq n consegui só importar e usar
 def ler_cardapio():
     """
         Função para ler o cardápio de produtos do arquivo JSON.
@@ -76,8 +79,7 @@ def expandir_detalhes_pedido(pedido_historico):
     Recebe um pedido do histórico e a lista de produtos do cardápio,
     e retorna o pedido com os detalhes de cada item expandidos.
     """
-    # Cria um mapa de produtos para busca rápida (ID -> detalhes do produto)
-    # Isso é muito mais eficiente do que percorrer a lista para cada item.
+    # Cria um mapa de produtos
     dados = ler_cardapio()
     mapa_produtos = {produto["ID"]: produto for produto in dados.get("produtos")}
 
@@ -90,22 +92,23 @@ def expandir_detalhes_pedido(pedido_historico):
             # Encontrou o produto, cria o item detalhado
             item_expandido = {
                 "produto_id": produto_id,
-                "nome": produto_detalhes.get("NOME"), # Use as chaves do seu JSON (NOME, PRECO)
+                "nome": produto_detalhes.get("NOME"), 
                 "quantidade": item_simples.get("quantidade"),
-                "valor_unitario": produto_detalhes.get("PRECO")
+                "valor_unitario": produto_detalhes.get("PRECO"),
+                "categoria": produto_detalhes.get("CATEGORIA")
             }
             itens_expandidos.append(item_expandido)
         else:
-            # Opcional: Lida com o caso de um produto não ser encontrado no cardápio
+            # Lida com o caso de um produto não ser encontrado no cardápio
             item_expandido = {
                 "produto_id": produto_id,
                 "nome": "Produto não encontrado",
-                "quantidade": item_simples.get("quantidade"),
-                "valor_unitario": 0
+                "quantidade": 0,
+                "valor_unitario": 0,
+                "categoria": "inexistente"
             }
             itens_expandidos.append(item_expandido)
 
-    # Cria uma cópia do pedido original e substitui a lista de 'itens'
     pedido_expandido = pedido_historico.copy()
     pedido_expandido["itens"] = itens_expandidos
 
@@ -190,6 +193,9 @@ def put_historico_pedidos(id_historico: str, pedido_atualizado: Order):
 def delete_historico_pedidos(req: DeleteRequest):
     """
     Endpoint para deletar um ou mais pedidos do histórico (versão recomendada).
+    
+    Metodo: DELETE
+    Caminho: http://localhost:8000/historico
     """
     historico_original = ler_historico()
     ids_a_remover = req.ids_historico
@@ -210,3 +216,56 @@ def delete_historico_pedidos(req: DeleteRequest):
     salvar_historico(historico_atualizado)
     
     return {"message": "Pedidos selecionados foram removidos com sucesso."}
+
+@router.get("{mesa}/filtrar/", tags=["historico"], response_model=List[Order]) 
+def filtrar_historico(
+    mesa: str,
+    nome_item: Optional[str] = Query(None, description="Filtrar por nome parcial do item."),
+    categoria: Optional[str] = Query(None, description="Filtrar por categoria exata do item."),
+    data: Optional[str] = Query(None, description="Filtrar por data no formato YYYY-MM-DD."),
+    status: Optional[str] = Query(None, description="Filtrar por status ('concluido', 'cancelado', 'em andamento').")
+):
+    """
+    Endpoint para obter o histórico filtrado.
+
+    Metodo: GET
+    Caminho: http://localhost:8000/historico/{nome_mesa}/filtrar
+    Exemplo: http://localhost:8000/historico/mesa_1/filtrar
+    """
+    historico = ler_historico()
+    historico_da_mesa = [pedido for pedido in historico if pedido.get("mesa") == mesa]
+
+
+    # Filtra a lista de histórico para encontrar apenas os pedidos da mesa especificada
+    if status:
+        # Mantém na lista apenas os pedidos cujo status corresponde ao filtro (ignorando maiúsculas/minúsculas)
+        historico_da_mesa = [p for p in historico_da_mesa if p.get('status', '').lower() == status.lower()]
+
+    # Filtro por DATA
+    if data:
+        # Mantém apenas os pedidos cuja data de fechamento começa com a data fornecida
+        historico_da_mesa = [p for p in historico_da_mesa if p.get('data_fechamento', '').startswith(data)]
+
+
+
+# PAREI AQUI, o problema é que eu não tenho nome e categoria dos itens dentro do historico
+    # Filtro por NOME DO ITEM
+    if nome_item:
+        pedidos_filtrados = []
+        for pedido in historico_da_mesa:
+            # Verifica se QUALQUER item dentro do pedido contém o nome pesquisado
+            if any(nome_item.lower() in item.get('nome', '').lower() for item in pedido.get('itens', [])):
+                pedidos_filtrados.append(pedido)
+        historico_da_mesa = pedidos_filtrados
+
+    # Filtro por CATEGORIA
+    if categoria:
+        pedidos_filtrados = []
+        for pedido in historico_da_mesa:
+            # Verifica se QUALQUER item dentro do pedido pertence à categoria pesquisada
+            if any(item.get('categoria', '').lower() == categoria.lower() for item in pedido.get('itens', [])):
+                pedidos_filtrados.append(pedido)
+        historico_da_mesa = pedidos_filtrados
+
+    # 3. Retorna a lista resultante (pode ser vazia se nenhum resultado for encontrado)
+    return historico_da_mesa
