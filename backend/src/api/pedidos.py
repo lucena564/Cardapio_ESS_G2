@@ -255,8 +255,9 @@ def fechar_pedido(mesa: str):
         novo_id_numerico = ultimo_id + 1
     id_final_formatado = f"{novo_id_numerico:04d}"
 
+
     # Cria o novo registro para o histórico com detalhes adicionais
-    pedido_finalizado = {
+    pedido = {
         "id_historico": id_final_formatado,  # Gera um ID único para o registro
         "mesa": mesa,
         "itens": mesa_data["pedidos"],
@@ -264,6 +265,7 @@ def fechar_pedido(mesa: str):
         "data_fechamento": datetime.now().isoformat(),
         "status": "Em andamento"
     }
+    pedido_finalizado = expandir_detalhes_pedido(pedido)
 
     # Adiciona o pedido finalizado ao histórico e salva o arquivo
     historico.append(pedido_finalizado)
@@ -275,3 +277,43 @@ def fechar_pedido(mesa: str):
     salvar_pedidos(pedidos_ativos)
 
     return {"message": f"Pedido da {mesa} fechado com sucesso e movido para o histórico.", "pedido_arquivado": pedido_finalizado}
+
+# Função auxiliar para envio do json com todas informações necessárias para o historico
+def expandir_detalhes_pedido(pedido_historico):
+    """
+    Recebe um pedido do histórico e retorna o pedido com os detalhes de cada item expandidos.
+    """
+    # Cria um mapa de produtos
+    dados = ler_cardapio()
+    mapa_produtos = {produto["ID"]: produto for produto in dados.get("produtos")}
+
+    itens_expandidos = []
+    for item_simples in pedido_historico.get("itens", []):
+        produto_id = item_simples.get("produto_id")
+        produto_detalhes = mapa_produtos.get(produto_id)
+
+        if produto_detalhes:
+            # Encontrou o produto, cria o item detalhado
+            item_expandido = {
+                "produto_id": produto_id,
+                "nome": produto_detalhes.get("NOME"), 
+                "quantidade": item_simples.get("quantidade"),
+                "valor_unitario": produto_detalhes.get("PRECO"),
+                "categoria": produto_detalhes.get("CATEGORIA")
+            }
+            itens_expandidos.append(item_expandido)
+        else:
+            # Lida com o caso de um produto não ser encontrado no cardápio
+            item_expandido = {
+                "produto_id": produto_id,
+                "nome": "Produto não encontrado",
+                "quantidade": 0,
+                "valor_unitario": 0,
+                "categoria": "inexistente"
+            }
+            itens_expandidos.append(item_expandido)
+
+    pedido_expandido = pedido_historico.copy()
+    pedido_expandido["itens"] = itens_expandidos
+
+    return pedido_expandido

@@ -42,10 +42,10 @@ class OrderUpdate(BaseModel):
 class DeleteRequest(BaseModel):
     ids_historico: List[str]
 
-class OrderFilter(BaseModel):
+'''class OrderFilter(BaseModel):
     tipo: str
     valor:
-
+'''
 
 def ler_historico() -> List[dict]:
     """
@@ -74,45 +74,6 @@ def ler_cardapio():
     with open(Constants.CARDAPIO_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def expandir_detalhes_pedido(pedido_historico):
-    """
-    Recebe um pedido do histórico e a lista de produtos do cardápio,
-    e retorna o pedido com os detalhes de cada item expandidos.
-    """
-    # Cria um mapa de produtos
-    dados = ler_cardapio()
-    mapa_produtos = {produto["ID"]: produto for produto in dados.get("produtos")}
-
-    itens_expandidos = []
-    for item_simples in pedido_historico.get("itens", []):
-        produto_id = item_simples.get("produto_id")
-        produto_detalhes = mapa_produtos.get(produto_id)
-
-        if produto_detalhes:
-            # Encontrou o produto, cria o item detalhado
-            item_expandido = {
-                "produto_id": produto_id,
-                "nome": produto_detalhes.get("NOME"), 
-                "quantidade": item_simples.get("quantidade"),
-                "valor_unitario": produto_detalhes.get("PRECO"),
-                "categoria": produto_detalhes.get("CATEGORIA")
-            }
-            itens_expandidos.append(item_expandido)
-        else:
-            # Lida com o caso de um produto não ser encontrado no cardápio
-            item_expandido = {
-                "produto_id": produto_id,
-                "nome": "Produto não encontrado",
-                "quantidade": 0,
-                "valor_unitario": 0,
-                "categoria": "inexistente"
-            }
-            itens_expandidos.append(item_expandido)
-
-    pedido_expandido = pedido_historico.copy()
-    pedido_expandido["itens"] = itens_expandidos
-
-    return pedido_expandido
 
 # ENDPOINT - GET /historico
 @router.get("/{mesa}", status_code=status.HTTP_200_OK, tags=["historico"])
