@@ -47,22 +47,22 @@ class DeleteRequest(BaseModel):
     valor:
 '''
 
-def ler_historico() -> List[dict]:
+def ler_historico(caminho: str = Constants.HISTORY_FILE) -> List[dict]:
     """
     Função para ler o histórico de pedidos do arquivo JSON.
     Se o arquivo não existir, retorna uma lista vazia.
     """
-    if not os.path.exists(Constants.HISTORY_FILE):
+    if not os.path.exists(caminho):
         return []
     
-    if os.path.getsize(Constants.HISTORY_FILE) == 0:
+    if os.path.getsize(caminho) == 0:
         return []
 
-    with open(Constants.HISTORY_FILE, "r", encoding="utf-8") as f:
+    with open(caminho, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def salvar_historico(data: List[dict]):
-    with open(Constants.HISTORY_FILE, "w", encoding="utf-8") as f:
+def salvar_historico(data: List[dict], caminho: str = Constants.HISTORY_FILE):
+    with open(caminho, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 # ENDPOINT - GET /historico
