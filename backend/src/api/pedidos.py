@@ -24,12 +24,12 @@ class Pedido(BaseModel):
 class PedidoModificar(BaseModel):
     itens: Optional[List[PedidoItem]] = None
 
-def ler_pedidos():
+def ler_pedidos(caminho_pedidos: str = Constants.PEDIDOS_FILE):
     """
         Função para ler os pedidos realizados do arquivo JSON.
         Se o arquivo não existir, cria um arquivo base com mesas e total zerado.
     """
-    if not os.path.exists(Constants.PEDIDOS_FILE):
+    if not os.path.exists(caminho_pedidos):
         base = {
             "mesas": ["mesa_1", "mesa_2", "mesa_3", "mesa_4", "mesa_5"],
             "mesa_1": {"pedidos": [], "total": 0},
@@ -41,14 +41,14 @@ def ler_pedidos():
         salvar_pedidos(base)
         return base
 
-    with open(Constants.PEDIDOS_FILE, "r", encoding="utf-8") as f:
+    with open(caminho_pedidos, "r", encoding="utf-8") as f:
         return json.load(f)
     
-def salvar_pedidos(data):
+def salvar_pedidos(data, caminho_pedidos: str = Constants.PEDIDOS_FILE):
     """
         Função para salvar os pedidos realizados no arquivo JSON.
     """
-    with open(Constants.PEDIDOS_FILE, "w", encoding="utf-8") as f:
+    with open(caminho_pedidos, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
@@ -82,21 +82,21 @@ def calcular_total(itens_pedido, cardapio_produtos):
     return round(total, 2)
 
 # Funções para histórico de pedidos
-def ler_historico() -> List[dict]:
+def ler_historico(caminho_historico: str = Constants.HISTORY_FILE) -> List[dict]:
     """
     Função para ler o histórico de pedidos do arquivo JSON.
     Se o arquivo não existir ou estiver vazio, retorna uma lista vazia.
     """
-    if not os.path.exists(Constants.HISTORY_FILE) or os.path.getsize(Constants.HISTORY_FILE) == 0:
+    if not os.path.exists(caminho_historico) or os.path.getsize(caminho_historico) == 0:
         return []
-    with open(Constants.HISTORY_FILE, "r", encoding="utf-8") as f:
+    with open(caminho_historico, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def salvar_historico(data: List[dict]):
+def salvar_historico(data: List[dict], caminho_historico: str = Constants.HISTORY_FILE):
     """
     Função para salvar o histórico de pedidos no arquivo JSON.
     """
-    with open(Constants.HISTORY_FILE, "w", encoding="utf-8") as f:
+    with open(caminho_historico, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
