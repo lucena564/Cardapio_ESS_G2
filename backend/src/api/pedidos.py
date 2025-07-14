@@ -172,26 +172,35 @@ Payload:
 @router.put("/{mesa}", status_code=status.HTTP_200_OK, tags=["pedidos"])
 def modificar_pedido(mesa: str, pedido_mod: PedidoModificar):
     """
-Endpoint para modificar um pedido existente em uma mesa específica.
+    Endpoint para modificar um pedido existente em uma mesa específica.
 
-Método: PUT  
-Caminho: /pedidos/{mesa}
+    Método: PUT  
+    Caminho: /pedidos/{mesa}
 
-Payload:
-```json
-{
-  "itens": [
+    Este endpoint permite substituir todos os itens de um pedido já existente.  
+    Se a lista de itens enviada for vazia, o pedido será considerado como cancelado.
+
+    Payload:
+    ```json
     {
-      "produto_id": "B002",
-      "quantidade": 1
-    },
-    {
-      "produto_id": "O001",
-      "quantidade": 1
+        "itens": [
+            {
+                "produto_id": "<id_do_produto>",
+                "quantidade": <int quantidade dese produto>
+            },
+            {
+                "produto_id": "<id_do_produto>",
+                "quantidade": <int quantidade dese produto>
+            }
+        ]
     }
-  ]
-}
-```
+    ```
+    Ou para cancelar o pedido:
+    ```json
+    {
+        "itens": []
+    }
+    ```
     """
     pedidos = ler_pedidos()
     cardapio = ler_cardapio()
@@ -202,16 +211,18 @@ Payload:
     if not pedidos[mesa]["pedidos"]:
         raise HTTPException(status_code=400, detail="Nenhum pedido encontrado para esta mesa, por favor, faça um pedido primeiro")
 
-    if not pedido_mod.itens:
-        raise HTTPException(status_code=400, detail="Lista de itens não pode ser vazia")
-
-    mesa_data = pedidos[mesa]
+    mesa_data = pedidos[mesa] 
 
     if pedido_mod.itens is not None:
-        # Substitui os pedidos atuais pelos novos itens
-        mesa_data["pedidos"] = [{"produto_id": item.produto_id, "quantidade": item.quantidade} for item in pedido_mod.itens]
+        # Permitir itens vazios como forma de cancelamento
+        if len(pedido_mod.itens) == 0:
+            mesa_data["pedidos"] = []
+        else:
+            mesa_data["pedidos"] = [
+                {"produto_id": item.produto_id, "quantidade": item.quantidade}
+                for item in pedido_mod.itens
+            ]
 
-        # Recalcula total
         try:
             itens_pedido_obj = [PedidoItem(**item) for item in mesa_data["pedidos"]]
             mesa_data["total"] = calcular_total(itens_pedido_obj, cardapio["produtos"])
@@ -219,10 +230,13 @@ Payload:
             raise e
 
         salvar_pedidos(pedidos)
-        return {"message": "Pedido modificado com sucesso", "mesa": mesa, "total": mesa_data["total"]}
+        return {
+            "message": "Pedido modificado com sucesso",
+            "mesa": mesa,
+            "total": mesa_data["total"]
+        }
 
-    else:
-        raise HTTPException(status_code=400, detail="Nenhum dado para modificar fornecido")
+    raise HTTPException(status_code=400, detail="Nenhum dado para modificar fornecido")
     
 # ENDPOINT 4 - POST fechar pedido e mover pro histórico
 @router.post("/fechar/{mesa}", status_code=status.HTTP_200_OK, tags=["pedidos"])

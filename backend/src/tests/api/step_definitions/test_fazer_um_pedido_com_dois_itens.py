@@ -1,8 +1,7 @@
 import re
 from fastapi.testclient import TestClient
 from pytest_bdd import scenario, given, when, then, parsers
-from src.main import app  # ajuste para o caminho correto do seu app FastAPI
-
+from src.main import app
 
 client = TestClient(app)
 
@@ -16,7 +15,6 @@ def test_fazer_pedido_com_dois_itens():
 
 @given(parsers.cfparse('estou na página do cardápio digital como cliente na "{mesa}"'), target_fixture="context")
 def acessar_cardapio(mesa):
-    # Retornaria os pedidos realizados de todas as mesas mesmo
     return {
         "mesa": mesa,
         "itens": [],
