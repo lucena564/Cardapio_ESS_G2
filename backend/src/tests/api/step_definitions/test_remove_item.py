@@ -1,4 +1,3 @@
-# Arquivo: tests/step_definitions/test_remove_item.py
 
 from pytest_bdd import scenario, given, when, then, parsers
 from fastapi.testclient import TestClient
@@ -43,7 +42,6 @@ def check_removal_success(context):
     assert context["response"].status_code == 204
 
 
-# Esta é a linha que foi corrigida para corresponder EXATAMENTE ao .feature
 @then(parsers.parse('o item "{nome_item}" não deve mais ser encontrado no cardápio'))
 def verify_item_is_gone(nome_item, context):
     """

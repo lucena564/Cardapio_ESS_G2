@@ -1,4 +1,3 @@
-# Arquivo: tests/step_definitions/test_promotional_item.py
 
 from pytest_bdd import scenario, given, when, then, parsers
 from fastapi.testclient import TestClient

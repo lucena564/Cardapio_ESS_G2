@@ -1,4 +1,3 @@
-# Arquivo: src/tests/api/step_definitions/test_add_item.py
 
 from pytest_bdd import scenario, given, when, then, parsers
 from fastapi.testclient import TestClient
@@ -51,8 +50,6 @@ def check_creation_success(context, nome_item):
 
     context["new_item_id"] = response_data["ID"]
 
-# --- CORREÇÃO APLICADA AQUI ---
-# A string agora está sem o ponto final, correspondendo EXATAMENTE ao seu .feature
 @then(parsers.parse('o item "{nome_item}" deve estar disponível para consulta no cardápio'))
 def verify_item_in_list(context, nome_item):
     """

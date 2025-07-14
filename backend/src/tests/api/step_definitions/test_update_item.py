@@ -1,4 +1,3 @@
-# Arquivo: tests/step_definitions/test_update_item.py
 
 from pytest_bdd import scenario, given, when, then, parsers
 from fastapi.testclient import TestClient
@@ -46,7 +45,6 @@ def check_update_success(context):
     assert context["response"].status_code == 200
 
 
-# Esta linha deve corresponder exatamente ao .feature, sem caracteres especiais
 @then(parsers.parse('o item "{nome_item}" deve agora custar "{novo_preco}"'))
 def check_updated_price(context, nome_item, novo_preco):
     """Verifica se o corpo da resposta reflete o preço atualizado."""
