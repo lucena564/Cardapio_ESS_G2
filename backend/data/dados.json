@@ -1,5 +1,11 @@
 {
-  "categorias": ["BEBIDAS", "LANCHES", "PIZZAS", "SOBREMESAS", "OUTROS"],
+  "categorias": [
+    "BEBIDAS",
+    "LANCHES",
+    "PIZZAS",
+    "SOBREMESAS",
+    "OUTROS"
+  ],
   "produtos": [
     {
       "ID": "B001",
@@ -160,6 +166,22 @@
       "DESCONTO": 0,
       "PRECO": 3.0,
       "CATEGORIA": "OUTROS"
+    },
+    {
+      "NOME": "Café Espresso Duplo",
+      "DESCRICAO": "Item para teste",
+      "PRECO": 10.0,
+      "DESCONTO": 20,
+      "CATEGORIA": "OUTROS",
+      "ID": "7f5e56a0-e039-4b7d-a6ba-138147e58a00"
+    },
+    {
+      "NOME": "Pizza Margherita",
+      "DESCRICAO": "Item de teste para atualização",
+      "PRECO": 37.5,
+      "DESCONTO": 0,
+      "CATEGORIA": "PIZZAS",
+      "ID": "5eee4513-e49c-4dc8-b3d3-f76bf0a8d247"
     }
   ]
 }
