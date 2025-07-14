@@ -8,8 +8,6 @@ from Utils.constants import Constants
 
 router = APIRouter()
 
-# app = FastAPI(title="Cardápio Virtual - Histórico de Pedidos", version="1.0.0")
-
 # Enums
 class StatusPedido(str, Enum):
     EMANDAMENTO = "em andamento"
@@ -105,12 +103,14 @@ def put_historico_pedidos(id_historico: str, pedido_atualizado: Order):
     "itens": [
       {
         "produto_id": "B004",
-        "quantidade": 3
-      }
-    ],
-    "total": 24.3,
-    "data_fechamento": "2025-07-09T13:33:02.135748",
-    "status": "Concluído"
+        "nome": "Cerveja Heineken Long Neck",
+        "quantidade": 3,
+        "valor_unitario": 9.0,
+        "categoria": "BEBIDAS"
+      },
+    "total": 27.0,
+    "data_fechamento": "2025-07-13T11:47:52.506010",
+    "status": "concluido"
     }
     ```
     """
@@ -143,7 +143,7 @@ def put_historico_pedidos(id_historico: str, pedido_atualizado: Order):
 @router.delete("/", status_code=status.HTTP_200_OK, tags=["historico"])
 def delete_historico_pedidos(req: DeleteRequest):
     """
-    Endpoint para deletar um ou mais pedidos do histórico (versão recomendada).
+    Endpoint para deletar um ou mais pedidos do histórico.
     
     Metodo: DELETE
     Caminho: http://localhost:8000/historico

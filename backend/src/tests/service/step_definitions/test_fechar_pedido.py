@@ -1,23 +1,17 @@
-# Em: tests/step_definitions/test_fechar_pedido_steps.py
-
 import pytest
 import json
 import os
 from fastapi.testclient import TestClient
 from pytest_bdd import scenario, given, when, then, parsers
 
-# Importe a instância principal da sua aplicação FastAPI
-# O caminho pode precisar de ajuste dependendo da sua estrutura
 from src.main import app 
 import src.api.pedidos as pedidos_api
 
 # Caminhos para os nossos arquivos de dados de teste
-# É uma boa prática usar arquivos separados para os testes para não sujar os dados de desenvolvimento
 PEDIDOS_ATIVOS_TEST_FILE = "test_pedidos_ativos.json"
 HISTORICO_TEST_FILE = "test_historico.json"
 
 # --- Cenários ---
-# Esta linha diz ao pytest-bdd para procurar por cenários no arquivo .feature especificado
 @scenario('../features/fechar_pedido.feature', 'Fechar com sucesso um pedido ativo de uma mesa existente')
 def test_fechar_pedido_com_sucesso():
     pass
@@ -72,13 +66,6 @@ def test_client(monkeypatch):
     return TestClient(app)
 
 
-
-
-'''@pytest.fixture
-def test_client():
-    """Cria uma instância do TestClient para fazer requisições à API."""
-    return TestClient(app)
-'''
 @pytest.fixture
 def context():
     """Um dicionário para passar dados entre os passos (ex: a resposta da API)."""
@@ -104,9 +91,7 @@ def setup_teardown_files():
     if os.path.exists(HISTORICO_TEST_FILE):
         os.remove(HISTORICO_TEST_FILE)
 
-
-# --- Step Definitions (Given, When, Then) ---
-
+# Steps
 # BACKGROUND
 @given('o arquivo de pedidos ativos contém os seguintes dados para a "mesa_1", ids "B001" e "L001", quantidades "2" e "1" respectivamente e valor total "33" e o arquivo de histórico de pedidos está vazio para as outras mesas')
 def setup_default_active_orders():
@@ -130,60 +115,18 @@ def setup_default_active_orders():
     with open(PEDIDOS_ATIVOS_TEST_FILE, "w") as f:
         json.dump(dados_base, f, indent=2)
 
-'''
-@given(parsers.parse('o arquivo de pedidos ativos para a "{mesa}" está vazio'), target_fixture="active_order_file_empty")
-def mock_pedidos_ativos_vazio(mesa):
-    dados = {
-        "mesas": [mesa],
-        mesa: {"pedidos": [], "total": 0}
-    }
-    with open(PEDIDOS_ATIVOS_TEST_FILE, "w") as f:
-        json.dump(dados, f)
-    return PEDIDOS_ATIVOS_TEST_FILE
-'''
+# Given
 @given('o arquivo de histórico de pedidos está inicialmente vazio')
 def mock_historico_vazio():
     # A fixture setup_teardown_files já garante isso
     pass
 
-@given(parsers.parse('o arquivo de histórico de pedidos já contém o seguinte registro:'), target_fixture="history_file_with_data")
-def mock_historico_com_dados():
-    dados = [[
-    {
-        "id_historico": "0001",
-        "mesa": "mesa_1",
-        "itens": [
-            {
-                "produto_id": "B004",
-                "nome": "Cerveja Heineken Long Neck",
-                "quantidade": 3,
-                "valor_unitario": 9.0,
-                "categoria": "BEBIDAS"
-            }
-        ],
-        "total": 46.3,
-        "data_fechamento": "2025-07-13T11:47:52.506010",
-        "status": "concluido"
-    }]]
-    with open(HISTORICO_TEST_FILE, "w") as f:
-        json.dump(dados, f)
-    return HISTORICO_TEST_FILE
 
-'''@given(parsers.parse('o sistema não tem nenhuma informação sobre a "{mesa}"'))
-def mock_mesa_inexistente(mesa):
-    dados = {
-        "mesas": ["mesa_1", "mesa_2"], # Uma lista de mesas que não inclui a mesa do teste
-        "mesa_1": {},
-        "mesa_2": {}
-    }
-    with open(PEDIDOS_ATIVOS_TEST_FILE, "w") as f:
-        json.dump(dados, f)'''
-
-@given(parsers.parse('o arquivo de histórico de pedidos já contém o seguinte registro de id_historico "0001" e mesa "mesa_1"'))
-def mock_historico_com_registro_especifico():
+@given(parsers.parse('o arquivo de histórico de pedidos já contém o seguinte registro de id_historico "{id_}" e mesa "{mesa}"'))
+def mock_historico_com_registro_especifico(id_, mesa):
     dados = [{
-        "id_historico": "0001",
-        "mesa": "mesa_1",
+        "id_historico": id_,
+        "mesa": mesa,
         "itens": [
             {
                 "produto_id": "B004",
@@ -201,13 +144,13 @@ def mock_historico_com_registro_especifico():
         json.dump(dados, f)
 
 
-# Quando (When)
+# When
 @when(parsers.parse('um cliente faz uma requisição POST para "{caminho}"'))
 def fazer_requisicao_post(context, test_client, caminho):
     response = test_client.post(caminho)
     context["response"] = response
 
-# Então (Then)
+# Then
 @then(parsers.parse('o código de status da resposta deve ser {codigo:d}'))
 def verificar_status_code(context, codigo):
     assert context["response"].status_code == codigo
