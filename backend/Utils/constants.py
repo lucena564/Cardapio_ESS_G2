@@ -1,6 +1,7 @@
 class Constants:
     PEDIDOS_FILE = "data/pedidos_realizados.json"
     CARDAPIO_FILE = "data/dados.json"
+    HISTORY_FILE = "data/order_history.json"
 
     PEDIDOS_REALIZADOS_DEFAULT = {
         "mesas": ["mesa_1", "mesa_2", "mesa_3", "mesa_4", "mesa_5"],
