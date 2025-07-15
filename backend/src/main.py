@@ -22,6 +22,14 @@ if not os.path.exists(Constants.CARDAPIO_FILE):
     with open(Constants.CARDAPIO_FILE, "w", encoding="utf-8") as f:
         json.dump(base, f, indent=2, ensure_ascii=False)
 
+# Cria as o arquivo de regras_sugestao.json caso não exista
+if not os.path.exists(Constants.SUGESTOES_FILE):
+
+    base = Constants.SUGESTOES_DEFAULT
+
+    with open(Constants.SUGESTOES_FILE, "w", encoding="utf-8") as f:
+        json.dump(base, f, indent=2, ensure_ascii=False)
+
 app = FastAPI()
 
 app.add_middleware(

@@ -4,3 +4,4 @@ __pycache__
 
 data/pedidos_realizados.json
 data/dados.json
+data/regras_sugestao.json

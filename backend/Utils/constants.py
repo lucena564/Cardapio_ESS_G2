@@ -184,3 +184,52 @@ class Constants:
         }
     ]
     }
+
+    SUGESTOES_DEFAULT = {
+    "nomes_sugestao": [
+      "LancheComRefrigerante",
+      "MistoQuenteComSuco",
+      "SobremesaComCafe",
+      "ComboLancheBatata"
+    ],
+    "LancheComRefrigerante": {
+      "items": [
+        {
+          "produto_id": "L001"
+        },
+        {
+          "produto_id": "B001"
+        }
+      ]
+    },
+    "MistoQuenteComSuco": {
+      "items": [
+        {
+          "produto_id": "L003"
+        },
+        {
+          "produto_id": "B002"
+        }
+      ]
+    },
+    "SobremesaComCafe": {
+      "items": [
+        {
+          "produto_id": "S001"
+        },
+        {
+          "produto_id": "B003"
+        }
+      ]
+    },
+    "ComboLancheBatata": {
+      "items": [
+        {
+          "produto_id": "L001"
+        },
+        {
+          "produto_id": "O001"
+        }
+      ]
+    }
+  }
