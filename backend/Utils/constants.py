@@ -50,7 +50,7 @@ class Constants:
         "ID": "B004",
         "NOME": "Cerveja Heineken Long Neck",
         "DESCRICAO": "Cerveja Premium Lager, 330ml.",
-        "DESCONTO": 1,
+        "DESCONTO": 10,
         "PRECO": 9.0,
         "CATEGORIA": "BEBIDAS"
         },
