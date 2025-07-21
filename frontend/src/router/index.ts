@@ -1,23 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ToDoView from '../views/ToDoView.vue'
+import Cardapio from '../views/Cardapio.vue'
+
+const routes = [
+  {
+    // http://localhost:5173/cardapio
+    path: '/cardapio',
+    name: 'Cardapio',
+    component: Cardapio
+  }
+]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: ToDoView
-    },
-    {
-      path: '/about',
-      name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/AboutView.vue')
-    }
-  ]
+  history: createWebHistory(),
+  routes
 })
 
 export default router
