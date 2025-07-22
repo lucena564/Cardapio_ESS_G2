@@ -1,21 +1,95 @@
 // apiService.ts
 
-import axios from 'axios';
+import axios from "axios";
+
+export interface ItemPedido {
+  produto_id: string;
+  nome: string;
+  quantidade: number;
+  valor_unitario: number;
+  categoria: string;
+}
+
+export interface PedidoHistorico {
+  id_historico: string;
+  mesa: string;
+  itens: ItemPedido[];
+  total: number;
+  data_fechamento: string;
+  status: "em andamento" | "concluido" | "cancelado";
+}
+
+export interface FiltrosHistorico {
+  nome_item?: string;
+  categoria?: string;
+  data?: string;
+  status?: string;
+}
 
 export function useApiService() {
-  const baseUrl = 'https://jsonplaceholder.typicode.com/users/1'; // Replace with your API URL
+  const baseUrl = "http://127.0.0.1:8000"; // Replace with your API URL
 
   async function fetchData() {
     try {
       const response = await axios.get(`${baseUrl}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
       throw error;
     }
   }
+  // --- Funções de Histórico ---
 
+  async function getHistoricoPorMesa(mesa: string): Promise<PedidoHistorico[]> {
+    const response = await axios.get(`${baseUrl}/historico/${mesa}`);
+    return response.data;
+  }
+
+  async function atualizarPedido(
+    idHistorico: string,
+    dadosDoPedido: PedidoHistorico
+  ): Promise<PedidoHistorico> {
+    const response = await axios.put(
+      `${baseUrl}/historico/${idHistorico}`,
+      dadosDoPedido
+    );
+    return response.data;
+  }
+
+  async function deletarPedidosDoHistorico(listaDeIds: string[]) {
+    const response = await axios.delete(`${baseUrl}/historico/`, {
+      data: { ids_historico: listaDeIds },
+    });
+    return response.data;
+  }
+
+  async function filtrarHistorico(
+    mesa: string,
+    filtros: FiltrosHistorico
+  ): Promise<PedidoHistorico[]> {
+    const response = await axios.get(`${baseUrl}/historico/${mesa}/filtrar`, {
+      params: filtros,
+    });
+    return response.data;
+  }
+
+  // --- Funções de Pedidos ---
+
+  async function fecharPedido(mesa: string) {
+    const response = await axios.post(`${baseUrl}/pedidos/fechar/${mesa}`);
+    return response.data;
+  }
+
+  // ===============================================
+  // ===== RETORNO COM TODAS AS FUNÇÕES ======
+  // ===============================================
   return {
-    fetchData,
+    fetchData, // Função original preservada
+    // Novas funções adicionadas:
+    getHistoricoPorMesa,
+    atualizarPedido,
+    deletarPedidosDoHistorico,
+    filtrarHistorico,
+    fecharPedido,
   };
 }
