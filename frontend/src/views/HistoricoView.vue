@@ -23,15 +23,28 @@
       >
         <div class="pedido-header">
           <strong>Pedido #{{ pedido.id_historico }}</strong>
+          <span>{{
+            new Date(pedido.data_fechamento).toLocaleString("pt-BR")
+          }}</span>
           <span :class="['status', pedido.status]">{{ pedido.status }}</span>
         </div>
+
         <div class="pedido-body">
-          <span>Mesa: {{ pedido.mesa }}</span>
-          <span>Total: R$ {{ pedido.total.toFixed(2) }}</span>
-          <span
-            >Data:
-            {{ new Date(pedido.data_fechamento).toLocaleString("pt-BR") }}</span
-          >
+          <p class="itens-titulo">Itens do Pedido:</p>
+          <ul class="itens-lista">
+            <li
+              v-for="item in pedido.itens"
+              :key="item.produto_id"
+              class="item"
+            >
+              <span class="item-quantidade">{{ item.quantidade }}x </span>
+              <span class="item-nome">{{ item.nome }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="pedido-footer">
+          <span> Total: R$ {{ pedido.total.toFixed(2) }}</span>
         </div>
       </li>
     </ul>
@@ -65,6 +78,10 @@ onMounted(async () => {
 <style scoped>
 .historico-container {
   padding: 1rem;
+  width: 200%;
+  max-width: 1200px; /* ADICIONADO: Define uma largura máxima */
+  margin: 0 auto; /* ADICIONADO: Centraliza o container na página */
+  text-align: center; /* <-- ADICIONE ESTA LINHA */
 }
 .loading,
 .error,
@@ -80,6 +97,7 @@ onMounted(async () => {
   list-style: none;
   padding: 0;
   margin-top: 1.5rem;
+  gap: 1.5rem;
 }
 .pedido-item {
   border: 1px solid var(--color-border);
@@ -87,6 +105,11 @@ onMounted(async () => {
   padding: 1rem;
   margin-bottom: 1rem;
   background-color: var(--color-background-soft);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.pedido-item:hover {
+  transform: translateY(-5px); /* Levanta o card um pouco */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Adiciona uma sombra mais pronunciada */
 }
 .pedido-header {
   display: flex;
@@ -101,6 +124,14 @@ onMounted(async () => {
   gap: 0.25rem;
   font-size: 0.9rem;
   color: var(--color-text-mute);
+}
+.pedido-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--color-text-mute);
+  margin-top: 0.5rem;
+  margin-left: 1000px;
 }
 .status {
   padding: 0.2rem 0.6rem;
