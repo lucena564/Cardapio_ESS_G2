@@ -3,6 +3,36 @@
     <h1>Histórico de Pedidos</h1>
     <p>Exibindo histórico para a <strong>mesa_1</strong>.</p>
 
+    <div class="area-busca">
+      <input
+        type="text"
+        v-model="termoBusca"
+        placeholder="Buscar por item ou categoria..."
+        @keydown.enter="executarBusca"
+      />
+      <button @click="executarBusca">Buscar</button>
+    </div>
+
+    <div class="area-filtros">
+      <strong>Filtrar por Status:</strong>
+      <div class="opcoes-filtro">
+        <label v-for="status in statusDisponiveis" :key="status">
+          <input type="checkbox" :value="status" v-model="statusSelecionados" />
+          <span>{{ status }}</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="area-filtros">
+      <strong>Filtrar por Status:</strong>
+      <div class="opcoes-filtro"></div>
+
+      <div class="filtro-data">
+        <strong>Filtrar por Data:</strong>
+        <input type="date" v-model="dataSelecionada" />
+      </div>
+    </div>
+
     <div v-if="carregando" class="loading">
       Buscando dados do servidor... ⏳
     </div>
@@ -30,7 +60,6 @@
         </div>
 
         <div class="pedido-body">
-          <p class="itens-titulo">Itens do Pedido:</p>
           <ul class="itens-lista">
             <li
               v-for="item in pedido.itens"
@@ -52,19 +81,128 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useApiService } from "../services/apiService";
 import type { PedidoHistorico } from "../services/apiService";
 
-const { getHistoricoPorMesa } = useApiService();
+const { getHistoricoPorMesa, filtrarHistorico } = useApiService();
 
+// --- ESTADO REATIVO ---
+const todosOsPedidos = ref<PedidoHistorico[]>([]);
 const pedidos = ref<PedidoHistorico[]>([]);
 const carregando = ref(true);
 const erro = ref<string | null>(null);
 
+// --- ESTADO PARA OS FILTROS ---
+const termoBusca = ref("");
+const statusDisponiveis = ref(["em andamento", "concluido", "cancelado"]);
+const statusSelecionados = ref<string[]>([]);
+const dataSelecionada = ref(""); // <-- NOVA VARIÁVEL PARA A DATA
+
+// --- FUNÇÃO DE BUSCA UNIFICADA E FINAL ---
+const aplicarFiltrosEBuscar = async () => {
+  carregando.value = true;
+  erro.value = null;
+
+  // Se nenhum filtro estiver ativo, restaura a lista original.
+  if (
+    !termoBusca.value.trim() &&
+    statusSelecionados.value.length === 0 &&
+    !dataSelecionada.value
+  ) {
+    pedidos.value = todosOsPedidos.value;
+    carregando.value = false;
+    return;
+  }
+
+  try {
+    const promessasDeBusca = [];
+    const busca = termoBusca.value.trim();
+    const statuses = statusSelecionados.value;
+    const data = dataSelecionada.value;
+
+    // 1. Monta o filtro base que será comum a todas as chamadas
+    const filtrosBase: { data?: string; status?: string } = {};
+    if (data) {
+      filtrosBase.data = data;
+    }
+
+    // 2. Prepara o loop de status (se nenhum for selecionado, busca em todos)
+    const loopStatuses = statuses.length > 0 ? statuses : [undefined];
+
+    for (const status of loopStatuses) {
+      const filtrosComStatus = { ...filtrosBase };
+      if (status) {
+        filtrosComStatus.status = status;
+      }
+
+      if (busca) {
+        // Combina o filtro de texto (nome E categoria) com os filtros base
+        promessasDeBusca.push(
+          filtrarHistorico("mesa_1", { ...filtrosComStatus, nome_item: busca })
+        );
+        promessasDeBusca.push(
+          filtrarHistorico("mesa_1", { ...filtrosComStatus, categoria: busca })
+        );
+      } else {
+        // Se não há texto, faz a busca apenas com os filtros base (data e/ou status)
+        promessasDeBusca.push(filtrarHistorico("mesa_1", filtrosComStatus));
+      }
+    }
+
+    // Executa todas as buscas em paralelo
+    const resultadosDasBuscas = await Promise.all(promessasDeBusca);
+
+    // Junta todos os resultados e remove duplicados
+    const resultadosCombinados = new Map<string, PedidoHistorico>();
+    resultadosDasBuscas.forEach((arrayDePedidos) => {
+      arrayDePedidos.forEach((p) =>
+        resultadosCombinados.set(p.id_historico, p)
+      );
+    });
+
+    const listaFinal = Array.from(resultadosCombinados.values());
+    listaFinal.sort(
+      (a, b) =>
+        new Date(b.data_fechamento).getTime() -
+        new Date(a.data_fechamento).getTime()
+    );
+
+    pedidos.value = listaFinal;
+  } catch (err) {
+    console.error("Falha ao filtrar histórico:", err);
+    erro.value = "Ocorreu um erro durante a busca.";
+  } finally {
+    carregando.value = false;
+  }
+};
+
+// --- WATCHER (OBSERVADOR) ---
+// Agora observa a data também!
+let debounceTimer: number;
+watch(
+  [termoBusca, statusSelecionados, dataSelecionada],
+  () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      aplicarFiltrosEBuscar();
+    }, 500);
+  },
+  { deep: true }
+); // 'deep' é importante para 'observar' mudanças dentro do array de status
+
 onMounted(async () => {
   try {
-    pedidos.value = await getHistoricoPorMesa("mesa_1");
+    const pedidosDaApi = await getHistoricoPorMesa("mesa_1");
+
+    pedidosDaApi.sort((a, b) => {
+      return (
+        new Date(b.data_fechamento).getTime() -
+        new Date(a.data_fechamento).getTime()
+      );
+    });
+
+    pedidos.value = pedidosDaApi;
   } catch (err) {
     console.error("Falha ao buscar histórico:", err);
     erro.value =
@@ -73,15 +211,58 @@ onMounted(async () => {
     carregando.value = false;
   }
 });
+
+const executarBusca = async () => {
+  // Se a busca estiver vazia, mostra todos os pedidos novamente
+
+  try {
+    // Para simular uma busca "OU", fazemos duas chamadas em paralelo
+    const buscaPorNome = filtrarHistorico("mesa_1", {
+      nome_item: termoBusca.value,
+    });
+    const buscaPorCategoria = filtrarHistorico("mesa_1", {
+      categoria: termoBusca.value,
+    });
+
+    // Espera as duas buscas terminarem
+    const [resultadosNome, resultadosCategoria] = await Promise.all([
+      buscaPorNome,
+      buscaPorCategoria,
+    ]);
+
+    // Junta os resultados e remove duplicados
+    const resultadosCombinados = new Map<string, PedidoHistorico>();
+
+    resultadosNome.forEach((p) => resultadosCombinados.set(p.id_historico, p));
+    resultadosCategoria.forEach((p) =>
+      resultadosCombinados.set(p.id_historico, p)
+    );
+
+    // Converte o Map de volta para um array e ordena
+    const listaFinal = Array.from(resultadosCombinados.values());
+    listaFinal.sort(
+      (a, b) =>
+        new Date(b.data_fechamento).getTime() -
+        new Date(a.data_fechamento).getTime()
+    );
+
+    pedidos.value = listaFinal;
+  } catch (err) {
+    console.error("Falha ao filtrar histórico:", err);
+    erro.value = "Ocorreu um erro durante a busca.";
+  } finally {
+    carregando.value = false;
+  }
+};
 </script>
 
 <style scoped>
 .historico-container {
   padding: 1rem;
   width: 200%;
-  max-width: 1200px; /* ADICIONADO: Define uma largura máxima */
-  margin: 0 auto; /* ADICIONADO: Centraliza o container na página */
-  text-align: center; /* <-- ADICIONE ESTA LINHA */
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
 }
 .loading,
 .error,
@@ -98,6 +279,7 @@ onMounted(async () => {
   padding: 0;
   margin-top: 1.5rem;
   gap: 1.5rem;
+  text-align: left;
 }
 .pedido-item {
   border: 1px solid var(--color-border);
@@ -127,11 +309,10 @@ onMounted(async () => {
 }
 .pedido-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   font-size: 0.9rem;
   color: var(--color-text-mute);
   margin-top: 0.5rem;
-  margin-left: 1000px;
 }
 .status {
   padding: 0.2rem 0.6rem;
@@ -152,5 +333,102 @@ onMounted(async () => {
 .status.cancelado {
   background-color: #d9534f;
   color: white;
+}
+.area-busca {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.area-busca input {
+  flex-grow: 1; /* Faz o input ocupar o máximo de espaço possível */
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+}
+
+.area-busca button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: hsla(160, 100%, 37%, 1); /* Cor verde do Vue */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.area-busca button:hover {
+  background-color: hsla(160, 100%, 30%, 1);
+}
+.area-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center; /* Centraliza o grupo de filtros */
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 0;
+}
+
+.opcoes-filtro {
+  display: flex;
+  gap: 0.5rem; /* Espaçamento entre os botões */
+}
+
+/* Esconde o checkbox padrão, mas o mantém funcional e acessível */
+.opcoes-filtro input[type="checkbox"] {
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+}
+
+/* Estiliza o texto (span) para que ele se pareça com um botão */
+.opcoes-filtro span {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 20px; /* Deixa as bordas bem arredondadas (estilo "pill") */
+  cursor: pointer;
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  transition: all 0.2s ease-in-out;
+  text-transform: capitalize;
+}
+
+/* Efeito ao passar o mouse por cima do "botão" */
+.opcoes-filtro span:hover {
+  border-color: hsla(160, 100%, 37%, 0.5);
+  background-color: var(--color-background-mute);
+}
+
+/* A MÁGICA: Quando o checkbox invisível está MARCADO (:checked),
+   muda o estilo do span que vem logo depois (+) */
+.opcoes-filtro input[type="checkbox"]:checked + span {
+  background-color: hsla(160, 100%, 37%, 1); /* Cor verde do Vue */
+  color: white;
+  border-color: hsla(160, 100%, 37%, 1);
+}
+.filtro-data {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filtro-data input[type="date"] {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
 }
 </style>
