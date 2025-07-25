@@ -1,12 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Cardapio from '../views/Cardapio.vue'
+import Bebidas from '../views/Bebidas.vue'
 
 const routes = [
   {
     // http://localhost:5173/cardapio
-    path: '/cardapio',
-    name: 'Cardapio',
-    component: Cardapio
+    path: '/cardapio/bebidas',
+    name: 'Bebidas',
+    component: Bebidas
+  },
+  {
+    path: '/cardapio/pizzas',
+    name: 'Pizzas',
+    component: () => import('../views/Pizzas.vue')
   }
 ]
 

@@ -3,25 +3,25 @@
     <div class="cardapio">
       <h2>Cardápio</h2>
       <div class="tabs">
-        <a href="/pizzas" class="tab">Pizzas</a>
+        <a href="/entradas" class="tab">Entradas</a>
         <a href="/lanches" class="tab">Lanches</a>
         <a href="/bebidas" class="tab active">Bebidas</a>
         <a href="/doces" class="tab">Doces</a>
       </div>
-
       <h3 class="categoria">Bebidas</h3>
       <button class="add-item">Adicionar Item</button>
 
-      <div class="item" v-for="(produto, index) in produtos" :key="produto.ID">
-        <div class="info-produto">
-            <h3 class="produto_do_cardapio">{{ produto.NOME }}</h3>
-            <p class="produto_do_cardapio">{{ produto.DESCRICAO }}</p>
-            <span>R$ {{ produto.PRECO.toFixed(2) }}</span>
-        </div>
+      <div class="item" v-for="i in 6" :key="i">
+        <!-- <input placeholder="Nome" />
+        <input placeholder="Descrição" /> -->
+        <h3 class="produto_do_cardapio">Coca-Cola</h3>
+        <p class="produto_do_cardapio">R$45</p>
+        <button>Editar Item</button>
+        <span>R$ 00,00</span>
         <div class="quantidade">
-            <button @click="alterarQuantidade(index, -1)">-</button>
-            <input type="number" min="0" :value="produto.quantidade" readonly />
-            <button @click="alterarQuantidade(index, 1)">+</button>
+          <button>-</button>
+          <input type="number" min="0" value="0" />
+          <button>+</button>
         </div>
       </div>
 
@@ -34,44 +34,22 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      produtos: []
-    }
-  },
-  async created() {
-    try {
-      const res = await fetch('/dados.json');
-      const json = await res.json();
-
-      // adiciona quantidade = 0 a cada produto
-      this.produtos = json.produtos
-        .filter(p => p.CATEGORIA === 'BEBIDAS')
-        .map(p => ({ ...p, quantidade: 0 }));
-    } catch (err) {
-      console.error('Erro ao carregar os dados:', err);
-    }
-  },
-  methods: {
-    alterarQuantidade(index, delta) {
-      const produto = this.produtos[index];
-      const novaQuantidade = produto.quantidade + delta;
-      produto.quantidade = novaQuantidade < 0 ? 0 : novaQuantidade;
-    }
-  }
-};
-</script>
-
 <style scoped>
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 2rem;
-  background: #524f4f;
+  background: #be3c3c;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;         /* adiciona espaço interno para mostrar o fundo vermelho */
+  background: #be3c3c;
   box-sizing: border-box;
 }
 
@@ -79,6 +57,7 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+
   background: white;
   padding: 2rem;
   border-radius: 12px;
@@ -89,12 +68,7 @@ export default {
   overflow-y: auto;
 }
 
-.tabs {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 1rem;
-  gap: 0.5rem;
-}
+
 
 .tab {
   display: inline-block;
@@ -127,43 +101,30 @@ export default {
 }
 
 .add-item {
-  align-self: flex-end;
+  float: right;
   margin-bottom: 1rem;
 }
 
 .item {
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  padding: 1rem;
-  border-radius: 8px;
-  width: 100%;
-  box-sizing: border-box;
 }
 
-.info-produto {
+.item input[type="text"], .item input[placeholder] {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.produto_do_cardapio {
-  margin: 0;
 }
 
 .quantidade {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .botoes {
   display: flex;
   justify-content: space-between;
   margin-top: 2rem;
-  gap: 1rem;
 }
 </style>
