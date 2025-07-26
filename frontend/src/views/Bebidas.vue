@@ -21,15 +21,27 @@
             <p class="produto_do_cardapio">{{ produto.DESCRICAO }}</p>
             <span>R$ {{ produto.PRECO.toFixed(2) }}</span>
         </div>
-        <div class="quantidade">
-            <button @click="alterarQuantidade(index, -1)">-</button>
-            <input type="number" min="0" :value="produto.quantidade" readonly />
-            <button @click="alterarQuantidade(index, 1)">+</button>
-        </div>
+          <div class="quantidade">
+            <button @click="alterarQuantidade(produto.ID, -1)">-</button>
+            <input type="number" min="0" :value="pedidoStore.itens[produto.ID] || 0" readonly />
+            <button @click="alterarQuantidade(produto.ID, 1)">+</button>
+          </div>
       </div>
 
       <div class="botoes">
-        <button class="btn">Fazer Pedido</button>
+        <!-- Botão de antes para fazer pedido -->
+        <!-- <button class="btn">Fazer Pedido</button> -->
+
+        <!-- Botão novo para Fazer Pedido -->
+        <button class="btn" @click="fazerPedido">Fazer Pedido</button>
+
+        <!-- Animação de sucesso -->
+        <div v-if="pedidoEnviado" class="alert-overlay">
+          <div v-if="pedidoEnviado" class="alert-success">
+            ✅ Pedido realizado com sucesso!
+          </div>
+        </div>
+
         <button class="btn">Cancelar Pedido</button>
         <button class="btn">Editar Pedido</button>
       </div>
@@ -38,30 +50,73 @@
 </template>
 
 <script>
+import { usePedidoStore } from '@/stores/pedido'
+
 export default {
   data() {
     return {
-      produtos: []
+      produtos: [],
+      pedidoEnviado: false
     }
   },
-  async created() {
-    try {
-      const res = await fetch('/dados.json');
-      const json = await res.json();
-
-      // adiciona quantidade = 0 a cada produto
-      this.produtos = json.produtos
-        .filter(p => p.CATEGORIA === 'BEBIDAS')
-        .map(p => ({ ...p, quantidade: 0 }));
-    } catch (err) {
-      console.error('Erro ao carregar os dados:', err);
+  created() {
+    this.carregarBebidas()
+  },
+  computed: {
+    pedidoStore() {
+      return usePedidoStore();
+    },
+    mesaSelecionada() {
+      return this.pedidoStore.mesa;
     }
   },
   methods: {
-    alterarQuantidade(index, delta) {
-      const produto = this.produtos[index];
-      const novaQuantidade = produto.quantidade + delta;
-      produto.quantidade = novaQuantidade < 0 ? 0 : novaQuantidade;
+    async carregarBebidas() {
+      try {
+        const res = await fetch('/dados.json');
+        const json = await res.json();
+        this.produtos = json.produtos.filter(p => p.CATEGORIA === 'BEBIDAS');
+      } catch (err) {
+        console.error('Erro ao carregar os dados:', err);
+      }
+    },
+
+    alterarQuantidade(produtoId, delta) {
+      this.pedidoStore.alterarQuantidade(produtoId, delta);
+    },
+
+    async fazerPedido() {
+      const pedido = {
+        mesa: this.mesaSelecionada,
+        itens: Object.entries(this.pedidoStore.itens).map(([id, qtd]) => ({
+          produto_id: id,
+          quantidade: qtd
+        }))
+      };
+
+      try {
+        // Aqui você pode trocar pela URL real da sua API
+        console.log('🛒 Enviando pedido:', pedido)
+        
+        await fetch('http://localhost:8000/pedidos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pedido)
+        });
+
+        // Feedback visual
+        this.pedidoEnviado = true;
+
+        // Zerar os itens
+        this.pedidoStore.zerarPedido();
+
+        // Esconde a mensagem após 2.5 segundos
+        setTimeout(() => {
+          this.pedidoEnviado = false;
+        }, 2500);
+      } catch (err) {
+        console.error('Erro ao enviar pedido:', err);
+      }
     }
   }
 };
@@ -326,5 +381,29 @@ export default {
   border-radius: 999px;         /* arredondamento para suavizar */
 }
 
+.alert-overlay {
+  position: fixed;        /* fixa sobre a tela inteira */
+  top: 0; 
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.3); /* fundo semitransparente */
+  display: flex;
+  justify-content: center; /* centraliza horizontalmente */
+  align-items: center;     /* centraliza verticalmente */
+  z-index: 9999;           /* fica acima de tudo */
+}
+
+.alert-success {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 2rem 3rem;
+  border-radius: 16px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  animation: fadeInOut 2.5s ease-in-out;
+}
 </style>
 

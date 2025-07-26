@@ -7,9 +7,8 @@
       <!-- Seleção da Mesa -->
       <div class="selecao-mesa">
         <label for="mesa">Informe sua mesa:</label>
-        <select id="mesa" v-model="mesaSelecionada" @change="salvarMesa">
-          <option disabled value="">Selecione...</option>
-          <option v-for="n in 5" :key="n" :value="`Mesa ${n}`">Mesa {{ n }}</option>
+        <select id="mesa" v-model="mesaSelecionada">
+          <option v-for="n in 5" :key="n" :value="`mesa_${n}`">Mesa {{ n }}</option>
         </select>
       </div>
 
@@ -20,29 +19,49 @@
 </template>
 
 <script>
+import { usePedidoStore } from '@/stores/pedido'
+
 export default {
   data() {
     return {
-      mesaSelecionada: ''
-    };
+      categorias: []  // Aqui vamos armazenar as categorias do JSON
+    }
   },
-  created() {
-    const mesaSalva = localStorage.getItem('mesa');
-    if (mesaSalva) this.mesaSelecionada = mesaSalva;
+  computed: {
+    pedidoStore() {
+      return usePedidoStore()
+    },
+    mesaSelecionada: {
+      get() {
+        return this.pedidoStore.mesa  // A mesa que está no store
+      },
+      set(valor) {
+        this.pedidoStore.setMesa(valor)  // Atualiza o valor da mesa no store e localStorage
+      }
+    }
+  },
+  async created() {
+    try {
+      const res = await fetch('/dados.json')  // Lê o arquivo JSON com categorias e produtos
+      const json = await res.json()
+      this.categorias = json.categorias  // Armazenamos as categorias do JSON
+    } catch (err) {
+      console.error('Erro ao carregar categorias:', err)
+    }
   },
   methods: {
-    salvarMesa() {
-      localStorage.setItem('mesa', this.mesaSelecionada);
-    },
     irParaCategorias() {
       if (!this.mesaSelecionada) {
-        alert('Por favor, selecione sua mesa antes de continuar.');
-        return;
+        alert('Por favor, selecione sua mesa antes de continuar.')
+        return
       }
-      this.$router.push('/cardapio/bebidas'); // ou a categoria padrão que desejar
+
+      // Navega para a categoria padrão, que aqui pode ser "bebidas", ou qualquer outra categoria
+      // TODO: Mudar para ENTRADAS, quando tiver
+      this.$router.push(`/cardapio/${this.categorias[0].toLowerCase()}`); // Usando a primeira categoria do JSON
     }
   }
-};
+}
 </script>
 
 <style scoped>
