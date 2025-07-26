@@ -13,3 +13,11 @@ body {
   background-color: #f8f8f8;
 }
 </style>
+
+<!-- <script setup lang="ts">
+import TheWelcome from './components/TheWelcome.vue'
+</script>
+
+<template>
+  <TheWelcome msg="Olá, mundo!" />
+</template> -->

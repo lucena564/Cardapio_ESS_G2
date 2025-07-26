@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="cardapio">
-      <h1 class="titulo-restaurante">Bem-vindo ao Restaurante Delícia!</h1>
+      <h1 class="titulo-restaurante">Bem-vindo ao Restaurante G2-ESS-Cardapio 2025.1!</h1>
       <p class="subtitulo">Escolha sua mesa e veja nosso cardápio completo.</p>
 
       <!-- Seleção da Mesa -->
@@ -13,7 +13,7 @@
       </div>
 
       <!-- Navegação de Categorias -->
-      <button class="btn-categorias" @click="irParaCategorias">Ver Categorias</button>
+      <button class="btn-categorias" @click="irParaCategorias">Ver Cardapio</button>
     </div>
   </div>
 </template>

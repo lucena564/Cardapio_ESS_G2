@@ -1,50 +1,52 @@
 <template>
   <div class="container">
     <div class="cardapio">
-        <h2>Cardápio</h2>
+        <!-- Título do cardápio -->
+        <h2>{{ categoria }}</h2>
         <hr class="divisoria" />
 
+        <!-- Navegação de Categorias -->
         <div class="tabs">
-        <a href="/cardapio/pizzas" class="tab">Pizzas</a>
-        <a href="/cardapio/lanches" class="tab">Lanches</a>
-        <a href="/cardapio/bebidas" class="tab active">Bebidas</a>
-        <a href="/cardapio/doces" class="tab">Doces</a>
+          <a v-for="categoria in categorias" :key="categoria" 
+             :href="`/cardapio/${categoria.toLowerCase()}`" 
+             :class="['tab', { active: categoria.toLowerCase() === $route.params.categoria }]">
+             {{ categoria }}
+          </a>
         </div>
 
-      <!-- <h3 class="categoria">Bebidas</h3> -->
-      <button class="btn add-item">Adicionar Item</button>
+        <!-- Botão Adicionar Item -->
+        <button class="btn add-item">Adicionar Item</button>
 
-
-      <div class="item" v-for="(produto, index) in produtos" :key="produto.ID">
-        <div class="info-produto">
-            <h3 class="produto_do_cardapio">{{ produto.NOME }}</h3>
-            <p class="produto_do_cardapio">{{ produto.DESCRICAO }}</p>
-            <span>R$ {{ produto.PRECO.toFixed(2) }}</span>
-        </div>
+        <!-- Exibindo os produtos da categoria -->
+        <div class="item" v-for="(produto, index) in produtos" :key="produto.ID">
+          <div class="info-produto">
+              <h3 class="produto_do_cardapio">{{ produto.NOME }}</h3>
+              <p class="produto_do_cardapio">{{ produto.DESCRICAO }}</p>
+              <span>R$ {{ produto.PRECO.toFixed(2) }}</span>
+          </div>
           <div class="quantidade">
             <button @click="alterarQuantidade(produto.ID, -1)">-</button>
             <input type="number" min="0" :value="pedidoStore.itens[produto.ID] || 0" readonly />
             <button @click="alterarQuantidade(produto.ID, 1)">+</button>
           </div>
-      </div>
-
-      <div class="botoes">
-        <!-- Botão de antes para fazer pedido -->
-        <!-- <button class="btn">Fazer Pedido</button> -->
-
-        <!-- Botão novo para Fazer Pedido -->
-        <button class="btn" @click="fazerPedido">Fazer Pedido</button>
-
-        <!-- Animação de sucesso -->
-        <div v-if="pedidoEnviado" class="alert-overlay">
-          <div v-if="pedidoEnviado" class="alert-success">
-            ✅ Pedido realizado com sucesso!
-          </div>
         </div>
 
-        <button class="btn">Cancelar Pedido</button>
-        <button class="btn">Editar Pedido</button>
-      </div>
+        <!-- Botões de Ação -->
+        <div class="botoes">
+          <!-- Botão para fazer pedido -->
+          <button class="btn" @click="fazerPedido">Fazer Pedido</button>
+
+          <!-- Animação de sucesso -->
+          <div v-if="pedidoEnviado" class="alert-overlay">
+            <div v-if="pedidoEnviado" class="alert-success">
+              ✅ Pedido realizado com sucesso!
+            </div>
+          </div>
+
+          <!-- Botões adicionais -->
+          <button class="btn">Cancelar Pedido</button>
+          <button class="btn">Editar Pedido</button>
+        </div>
     </div>
   </div>
 </template>
@@ -56,71 +58,73 @@ export default {
   data() {
     return {
       produtos: [],
+      categorias: [],
+      categoria: '',
       pedidoEnviado: false
     }
   },
-  created() {
-    this.carregarBebidas()
-  },
   computed: {
     pedidoStore() {
-      return usePedidoStore();
-    },
-    mesaSelecionada() {
-      return this.pedidoStore.mesa;
+      return usePedidoStore()
+    }
+  },
+  async created() {
+    try {
+      const res = await fetch('/dados.json')
+      const json = await res.json()
+      this.categorias = json.categorias
+      this.categoria = this.$route.params.categoria.toUpperCase()
+      this.produtos = json.produtos.filter(p => p.CATEGORIA === this.categoria)
+    } catch (err) {
+      console.error('Erro ao carregar produtos:', err)
     }
   },
   methods: {
-    async carregarBebidas() {
-      try {
-        const res = await fetch('/dados.json');
-        const json = await res.json();
-        this.produtos = json.produtos.filter(p => p.CATEGORIA === 'BEBIDAS');
-      } catch (err) {
-        console.error('Erro ao carregar os dados:', err);
-      }
-    },
-
     alterarQuantidade(produtoId, delta) {
-      this.pedidoStore.alterarQuantidade(produtoId, delta);
+      this.pedidoStore.alterarQuantidade(produtoId, delta)
     },
 
     async fazerPedido() {
-      const pedido = {
-        mesa: this.mesaSelecionada,
-        itens: Object.entries(this.pedidoStore.itens).map(([id, qtd]) => ({
+      const itensSelecionados = Object.entries(this.pedidoStore.itens)
+        .filter(([_, qtd]) => qtd > 0)
+
+        // O .map transforma os itens selecionados em um array de objetos
+        // Foi a forma que eu encontrei para verificar se foi selecionado algum item ao clicar `Fazer Pedido`
+        .map(([id, qtd]) => ({
           produto_id: id,
           quantidade: qtd
-        }))
-      };
+        }));
+
+      if (itensSelecionados.length === 0) {
+        alert('Por favor, selecione ao menos um produto antes de fazer o pedido.');
+        return;
+      }
 
       try {
-        // Aqui você pode trocar pela URL real da sua API
-        console.log('🛒 Enviando pedido:', pedido)
-        
         await fetch('http://localhost:8000/pedidos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(pedido)
-        });
-
-        // Feedback visual
+        })
+        
+        // Flag para popup de pedido realizado com sucesso
         this.pedidoEnviado = true;
 
-        // Zerar os itens
-        this.pedidoStore.zerarPedido();
+        // Limpa o pedido no store e localStorage
+        this.pedidoStore.zerarPedido()
 
-        // Esconde a mensagem após 2.5 segundos
+        // Seta o tempo que a mensagem de sucesso desapareça
         setTimeout(() => {
           this.pedidoEnviado = false;
-        }, 2500);
+        }, 3000);
       } catch (err) {
-        console.error('Erro ao enviar pedido:', err);
+        console.error('Erro ao enviar pedido:', err)
       }
     }
   }
-};
+}
 </script>
+
 
 <style scoped>
 .container {
