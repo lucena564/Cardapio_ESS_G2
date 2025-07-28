@@ -50,6 +50,8 @@
         v-for="pedido in pedidos"
         :key="pedido.id_historico"
         class="pedido-item"
+        @click="toggleExpandir(pedido.id_historico)"
+        :class="{ expandido: pedido.id_historico === idPedidoExpandido }"
       >
         <div class="pedido-header">
           <strong>Pedido #{{ pedido.id_historico }}</strong>
@@ -66,14 +68,31 @@
               :key="item.produto_id"
               class="item"
             >
-              <span class="item-quantidade">{{ item.quantidade }}x </span>
-              <span class="item-nome">{{ item.nome }}</span>
+              <div>
+                <span class="item-quantidade">{{ item.quantidade }}x </span>
+                <span class="item-nome">{{ item.nome }}</span>
+              </div>
+              <span
+                v-if="pedido.id_historico === idPedidoExpandido"
+                class="item-valor"
+              >
+                R$ {{ (item.valor_unitario * item.quantidade).toFixed(2) }}
+              </span>
             </li>
           </ul>
         </div>
 
-        <div class="pedido-footer">
-          <span> Total: R$ {{ pedido.total.toFixed(2) }}</span>
+        <div class="detalhes-expansiveis">
+          <div class="conteudo-secreto">
+            <div class="pedido-resumo">
+              <span> Total: R$ {{ pedido.total.toFixed(2) }}</span>
+            </div>
+            <div class="pedido-acoes">
+              <button class="btn-refazer" @click.stop="refazerPedido(pedido)">
+                Refazer Pedido
+              </button>
+            </div>
+          </div>
         </div>
       </li>
     </ul>
@@ -84,6 +103,30 @@
 import { ref, onMounted, watch } from "vue";
 import { useApiService } from "../services/apiService";
 import type { PedidoHistorico } from "../services/apiService";
+
+// Guarda o ID do pedido que está expandido. Se for 'null', nenhum está.
+const idPedidoExpandido = ref<string | null>(null);
+
+// Função para expandir/recolher um card
+function toggleExpandir(pedidoId: string) {
+  // Se o ID clicado já for o que está expandido, recolhe (ponteiro para null).
+  if (idPedidoExpandido.value === pedidoId) {
+    idPedidoExpandido.value = null;
+  } else {
+    // Senão, expande o novo ID.
+    idPedidoExpandido.value = pedidoId;
+  }
+}
+
+// Função mock para o botão "Refazer Pedido"
+function refazerPedido(pedido: PedidoHistorico) {
+  console.log("Itens para o novo pedido:", pedido.itens);
+  alert(
+    `Redirecionando para a página de pedidos com os itens do pedido #${pedido.id_historico}! (Funcionalidade mock)`
+  );
+  // Aqui, no futuro, você usaria o Vue Router para navegar para a página de pedidos,
+  // passando os itens do pedido como parâmetro.
+}
 
 const { getHistoricoPorMesa, filtrarHistorico } = useApiService();
 
@@ -287,7 +330,67 @@ const executarBusca = async () => {
   padding: 1rem;
   margin-bottom: 1rem;
   background-color: var(--color-background-soft);
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  cursor: pointer; /* Indica que o item é clicável */
+  transition: all 0.3s ease-in-out; /* Anima todas as propriedades */
+}
+
+/* Quando o item NÃO está expandido, não muda nada */
+.pedido-item:not(.expandido):hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Quando o item ESTÁ expandido, damos um destaque */
+.pedido-item.expandido {
+  border-color: hsla(160, 100%, 37%, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* --- A MÁGICA DA ANIMAÇÃO "ACCORDION" --- */
+.detalhes-expansiveis {
+  display: grid;
+  /* Por padrão, a "grade" tem altura zero, escondendo o conteúdo */
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s ease-in-out;
+}
+
+.pedido-item.expandido .detalhes-expansiveis {
+  /* Quando expandido, a "grade" cresce para acomodar o conteúdo */
+  grid-template-rows: 1fr;
+}
+
+/* O conteúdo dentro da área expansível precisa de 'overflow: hidden' 
+   para que a animação funcione corretamente */
+.detalhes-expansiveis > * {
+  overflow: hidden;
+}
+
+/* --- ESTILOS PARA OS NOVOS ELEMENTOS --- */
+.item {
+  display: flex;
+  justify-content: space-between; /* Empurra o valor para a direita */
+}
+
+.item-valor {
+  font-style: italic;
+  color: var(--color-text-mute);
+}
+
+.btn-refazer {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--color-background);
+  border: 1px solid hsla(160, 100%, 37%, 1);
+  color: hsla(160, 100%, 37%, 1);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-refazer:hover {
+  background-color: hsla(160, 100%, 37%, 1);
+  color: white;
 }
 .pedido-item:hover {
   transform: translateY(-5px); /* Levanta o card um pouco */
@@ -307,12 +410,22 @@ const executarBusca = async () => {
   font-size: 0.9rem;
   color: var(--color-text-mute);
 }
-.pedido-footer {
+.pedido-resumo {
   display: flex;
-  justify-content: flex-end;
-  font-size: 0.9rem;
-  color: var(--color-text-mute);
-  margin-top: 0.5rem;
+  justify-content: flex-end; /* Empurra o total para a direita */
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--color-heading);
+}
+
+/* Estilo para a área do BOTÃO */
+.pedido-acoes {
+  margin-top: 1rem;
+  text-align: left; /* Alinha o botão à esquerda */
 }
 .status {
   padding: 0.2rem 0.6rem;
@@ -430,5 +543,42 @@ const executarBusca = async () => {
   border-radius: 8px;
   background-color: var(--color-background-soft);
   color: var(--color-text);
+}
+.item-valor {
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+  font-style: italic;
+  color: var(--color-text-mute);
+}
+
+/* Quando o card está expandido, o valor do item se torna visível */
+.pedido-item.expandido .item-valor {
+  opacity: 1;
+}
+
+/* --- A MÁGICA DA ANIMAÇÃO "ACCORDION" PARA O RODAPÉ --- */
+/* Esta parte continua a mesma de antes, mas agora só afeta o rodapé */
+.detalhes-expansiveis {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s ease-in-out;
+}
+
+.pedido-item.expandido .detalhes-expansiveis {
+  grid-template-rows: 1fr;
+}
+
+.detalhes-expansiveis > .conteudo-secreto {
+  overflow: hidden;
+}
+
+/* Oculta o botão quando não está expandido */
+.pedido-acoes {
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out 0.2s; /* Adiciona um pequeno delay */
+}
+
+.pedido-item.expandido .pedido-acoes {
+  opacity: 1;
 }
 </style>
