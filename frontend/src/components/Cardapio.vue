@@ -103,7 +103,7 @@ export default {
       };
 
       try {
-        await fetch(`http://localhost:8000/pedidos/fechar/${this.pedidoStore.mesa}`, {
+        await fetch(`http://localhost:8000/pedidos`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(pedido)
