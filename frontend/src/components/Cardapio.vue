@@ -15,7 +15,7 @@
         </div>
 
         <!-- Botão Adicionar Item -->
-        <button class="btn add-item">Adicionar Item</button>
+        <!-- <button class="btn add-item">Adicionar Item</button> -->
 
         <!-- Exibindo os produtos da categoria -->
         <div class="item" v-for="(produto, index) in produtos" :key="produto.ID">
@@ -44,8 +44,8 @@
           </div>
 
           <!-- Botões adicionais -->
-          <button class="btn">Cancelar Pedido</button>
-          <button class="btn">Editar Pedido</button>
+          <button class="btn">Acompanhar Pedidos</button>
+          <button class="btn">Cancelar Pedidos</button>
         </div>
     </div>
   </div>
@@ -103,7 +103,7 @@ export default {
       };
 
       try {
-        await fetch('http://localhost:8000/pedidos', {
+        await fetch(`http://localhost:8000/pedidos/fechar/${this.pedidoStore.mesa}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(pedido)
