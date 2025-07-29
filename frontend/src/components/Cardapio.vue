@@ -87,9 +87,6 @@ export default {
     async fazerPedido() {
       const itensSelecionados = Object.entries(this.pedidoStore.itens)
         .filter(([_, qtd]) => qtd > 0)
-
-        // O .map transforma os itens selecionados em um array de objetos
-        // Foi a forma que eu encontrei para verificar se foi selecionado algum item ao clicar `Fazer Pedido`
         .map(([id, qtd]) => ({
           produto_id: id,
           quantidade: qtd
@@ -100,27 +97,28 @@ export default {
         return;
       }
 
+      const pedido = {
+        mesa: this.pedidoStore.mesa,
+        itens: itensSelecionados
+      };
+
       try {
         await fetch('http://localhost:8000/pedidos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(pedido)
-        })
-        
-        // Flag para popup de pedido realizado com sucesso
+        });
+
         this.pedidoEnviado = true;
+        this.pedidoStore.zerarPedido();
 
-        // Limpa o pedido no store e localStorage
-        this.pedidoStore.zerarPedido()
-
-        // Seta o tempo que a mensagem de sucesso desapareça
         setTimeout(() => {
           this.pedidoEnviado = false;
         }, 3000);
       } catch (err) {
-        console.error('Erro ao enviar pedido:', err)
+        console.error('Erro ao enviar pedido:', err);
       }
-    }
+    },
   }
 }
 </script>
