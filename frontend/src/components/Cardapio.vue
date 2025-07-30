@@ -132,8 +132,48 @@ export default {
         console.error("Erro ao enviar pedido:", err);
       }
     },
-    irParaHistorico() {
-      this.$router.push("/historico");
+    async irParaHistorico() {
+      // 1. Pega a mesa atual da store
+      const mesaParaFechar = this.pedidoStore.mesa;
+
+      if (!mesaParaFechar) {
+        alert("Erro: Nenhuma mesa está selecionada.");
+        return;
+      }
+
+      // Adiciona uma confirmação para o usuário
+      if (
+        !confirm(
+          `Deseja fechar os pedidos da ${mesaParaFechar} e ir para o histórico?`
+        )
+      ) {
+        return; // O usuário cancelou a ação
+      }
+
+      try {
+        // 2. Chama a rota do backend para "fechar o pedido"
+        const response = await fetch(
+          `http://localhost:8000/pedidos/fechar/${mesaParaFechar}`,
+          {
+            method: "POST",
+          }
+        );
+
+        if (!response.ok) {
+          // Se a resposta da API não for de sucesso (ex: erro 400, 404, 500)
+          const erroData = await response.json();
+          throw new Error(erroData.detail || "Falha ao fechar o pedido.");
+        }
+
+        // 3. Se a chamada foi bem-sucedida, zera o pedido na store local
+        this.pedidoStore.zerarPedido();
+
+        // 4. Finalmente, navega para a página de histórico
+        this.$router.push("/historico");
+      } catch (err) {
+        console.error("Erro ao fechar pedido e ir para o histórico:", err);
+        alert(`Ocorreu um erro: ${err.message}`);
+      }
     },
   },
 };

@@ -1,7 +1,7 @@
 <template>
   <div class="historico-container">
     <h1>Histórico de Pedidos</h1>
-    <p>Exibindo histórico para a <strong>mesa_1</strong>.</p>
+    <p>Exibindo histórico para a <strong>mesa</strong>.</p>
 
     <div class="area-busca">
       <input
@@ -103,6 +103,11 @@
 import { ref, onMounted, watch } from "vue";
 import { useApiService } from "../services/apiService";
 import type { PedidoHistorico } from "../services/apiService";
+import { usePedidoStore } from "@/stores/pedido";
+import { useRouter } from "vue-router"; // 1. Importe o useRouter
+
+const pedidoStore = usePedidoStore();
+const router = useRouter(); // 2. Crie uma instância do router
 
 // Guarda o ID do pedido que está expandido. Se for 'null', nenhum está.
 const idPedidoExpandido = ref<string | null>(null);
@@ -120,11 +125,8 @@ function toggleExpandir(pedidoId: string) {
 
 // Função mock para o botão "Refazer Pedido"
 function refazerPedido(pedido: PedidoHistorico) {
-  console.log("Itens para o novo pedido:", pedido.itens);
-  alert(
-    `Redirecionando para a página de pedidos com os itens do pedido #${pedido.id_historico}! (Funcionalidade mock)`
-  );
-  // fiz um mock, tenho que integrar ainda
+  pedidoStore.preencherCarrinhoComHistorico(pedido.itens);
+  router.push("/cardapio/bebidas");
 }
 
 const { getHistoricoPorMesa, filtrarHistorico } = useApiService();
@@ -143,9 +145,9 @@ const dataSelecionada = ref(""); // <-- NOVA VARIÁVEL PARA A DATA
 
 // --- FUNÇÃO DE BUSCA UNIFICADA E FINAL ---
 const aplicarFiltrosEBuscar = async () => {
+  const mesaAtual = pedidoStore.mesa;
   carregando.value = true;
   erro.value = null;
-
   // Se nenhum filtro estiver ativo, restaura a lista original.
   if (
     !termoBusca.value.trim() &&
@@ -181,14 +183,14 @@ const aplicarFiltrosEBuscar = async () => {
       if (busca) {
         // Combina o filtro de texto (nome E categoria) com os filtros base
         promessasDeBusca.push(
-          filtrarHistorico("mesa_1", { ...filtrosComStatus, nome_item: busca })
+          filtrarHistorico(mesaAtual, { ...filtrosComStatus, nome_item: busca })
         );
         promessasDeBusca.push(
-          filtrarHistorico("mesa_1", { ...filtrosComStatus, categoria: busca })
+          filtrarHistorico(mesaAtual, { ...filtrosComStatus, categoria: busca })
         );
       } else {
         // Se não há texto, faz a busca apenas com os filtros base (data e/ou status)
-        promessasDeBusca.push(filtrarHistorico("mesa_1", filtrosComStatus));
+        promessasDeBusca.push(filtrarHistorico(mesaAtual, filtrosComStatus));
       }
     }
 
@@ -234,7 +236,8 @@ watch(
 
 onMounted(async () => {
   try {
-    const pedidosDaApi = await getHistoricoPorMesa("mesa_1");
+    const mesaAtual = pedidoStore.mesa;
+    const pedidosDaApi = await getHistoricoPorMesa(mesaAtual);
 
     pedidosDaApi.sort((a, b) => {
       return (
@@ -255,12 +258,13 @@ onMounted(async () => {
 
 const executarBusca = async () => {
   // Se a busca estiver vazia, mostra todos os pedidos novamente
+  const mesaAtual = pedidoStore.mesa;
 
   try {
-    const buscaPorNome = filtrarHistorico("mesa_1", {
+    const buscaPorNome = filtrarHistorico(mesaAtual, {
       nome_item: termoBusca.value,
     });
-    const buscaPorCategoria = filtrarHistorico("mesa_1", {
+    const buscaPorCategoria = filtrarHistorico(mesaAtual, {
       categoria: termoBusca.value,
     });
 
