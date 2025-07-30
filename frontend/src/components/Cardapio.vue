@@ -1,87 +1,98 @@
 <template>
-  <div class="container">
-    <div class="cardapio">
-        <!-- Título do cardápio -->
-        <h2>{{ categoria }}</h2>
-        <hr class="divisoria" />
+  <div class="cardapio">
+    <!-- Título do cardápio -->
+    <h2>{{ categoria }}</h2>
+    <hr class="divisoria" />
 
-        <!-- Navegação de Categorias -->
-        <div class="tabs">
-          <a v-for="categoria in categorias" :key="categoria" 
-             :href="`/cardapio/${categoria.toLowerCase()}`" 
-             :class="['tab', { active: categoria.toLowerCase() === $route.params.categoria }]">
-             {{ categoria }}
-          </a>
+    <!-- Navegação de Categorias -->
+    <div class="tabs">
+      <a
+        v-for="categoria in categorias"
+        :key="categoria"
+        :href="`/cardapio/${categoria.toLowerCase()}`"
+        :class="[
+          'tab',
+          { active: categoria.toLowerCase() === $route.params.categoria },
+        ]"
+      >
+        {{ categoria }}
+      </a>
+    </div>
+
+    <!-- Botão Adicionar Item -->
+    <!-- <button class="btn add-item">Adicionar Item</button> -->
+
+    <!-- Exibindo os produtos da categoria -->
+    <div class="item" v-for="(produto, index) in produtos" :key="produto.ID">
+      <div class="info-produto">
+        <h3 class="produto_do_cardapio">{{ produto.NOME }}</h3>
+        <p class="produto_do_cardapio">{{ produto.DESCRICAO }}</p>
+        <span>R$ {{ produto.PRECO.toFixed(2) }}</span>
+      </div>
+      <div class="quantidade">
+        <button @click="alterarQuantidade(produto.ID, -1)">-</button>
+        <input
+          type="number"
+          min="0"
+          :value="pedidoStore.itens[produto.ID] || 0"
+          readonly
+        />
+        <button @click="alterarQuantidade(produto.ID, 1)">+</button>
+      </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div class="botoes">
+      <!-- Botão para fazer pedido -->
+      <button class="btn" @click="fazerPedido">Fazer Pedido</button>
+
+      <!-- Animação de sucesso -->
+      <div v-if="pedidoEnviado" class="alert-overlay">
+        <div v-if="pedidoEnviado" class="alert-success">
+          ✅ Pedido realizado com sucesso!
         </div>
+      </div>
 
-        <!-- Botão Adicionar Item -->
-        <!-- <button class="btn add-item">Adicionar Item</button> -->
-
-        <!-- Exibindo os produtos da categoria -->
-        <div class="item" v-for="(produto, index) in produtos" :key="produto.ID">
-          <div class="info-produto">
-              <h3 class="produto_do_cardapio">{{ produto.NOME }}</h3>
-              <p class="produto_do_cardapio">{{ produto.DESCRICAO }}</p>
-              <span>R$ {{ produto.PRECO.toFixed(2) }}</span>
-          </div>
-          <div class="quantidade">
-            <button @click="alterarQuantidade(produto.ID, -1)">-</button>
-            <input type="number" min="0" :value="pedidoStore.itens[produto.ID] || 0" readonly />
-            <button @click="alterarQuantidade(produto.ID, 1)">+</button>
-          </div>
-        </div>
-
-        <!-- Botões de Ação -->
-        <div class="botoes">
-          <!-- Botão para fazer pedido -->
-          <button class="btn" @click="fazerPedido">Fazer Pedido</button>
-
-          <!-- Animação de sucesso -->
-          <div v-if="pedidoEnviado" class="alert-overlay">
-            <div v-if="pedidoEnviado" class="alert-success">
-              ✅ Pedido realizado com sucesso!
-            </div>
-          </div>
-
-          <!-- Botões adicionais -->
-          <button class="btn">Acompanhar Pedidos</button>
-          <button class="btn">Cancelar Pedidos</button>
-        </div>
+      <!-- Botões adicionais -->
+      <button class="btn" @click="irParaHistorico">Acompanhar Pedidos</button>
+      <button class="btn">Cancelar Pedidos</button>
     </div>
   </div>
 </template>
 
 <script>
-import { usePedidoStore } from '@/stores/pedido'
+import { usePedidoStore } from "@/stores/pedido";
 
 export default {
   data() {
     return {
       produtos: [],
       categorias: [],
-      categoria: '',
-      pedidoEnviado: false
-    }
+      categoria: "",
+      pedidoEnviado: false,
+    };
   },
   computed: {
     pedidoStore() {
-      return usePedidoStore()
-    }
+      return usePedidoStore();
+    },
   },
   async created() {
     try {
-      const res = await fetch('/dados.json')
-      const json = await res.json()
-      this.categorias = json.categorias
-      this.categoria = this.$route.params.categoria.toUpperCase()
-      this.produtos = json.produtos.filter(p => p.CATEGORIA === this.categoria)
+      const res = await fetch("/dados.json");
+      const json = await res.json();
+      this.categorias = json.categorias;
+      this.categoria = this.$route.params.categoria.toUpperCase();
+      this.produtos = json.produtos.filter(
+        (p) => p.CATEGORIA === this.categoria
+      );
     } catch (err) {
-      console.error('Erro ao carregar produtos:', err)
+      console.error("Erro ao carregar produtos:", err);
     }
   },
   methods: {
     alterarQuantidade(produtoId, delta) {
-      this.pedidoStore.alterarQuantidade(produtoId, delta)
+      this.pedidoStore.alterarQuantidade(produtoId, delta);
     },
 
     async fazerPedido() {
@@ -89,24 +100,26 @@ export default {
         .filter(([_, qtd]) => qtd > 0)
         .map(([id, qtd]) => ({
           produto_id: id,
-          quantidade: qtd
+          quantidade: qtd,
         }));
 
       if (itensSelecionados.length === 0) {
-        alert('Por favor, selecione ao menos um produto antes de fazer o pedido.');
+        alert(
+          "Por favor, selecione ao menos um produto antes de fazer o pedido."
+        );
         return;
       }
 
       const pedido = {
         mesa: this.pedidoStore.mesa,
-        itens: itensSelecionados
+        itens: itensSelecionados,
       };
 
       try {
         await fetch(`http://localhost:8000/pedidos`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(pedido)
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(pedido),
         });
 
         this.pedidoEnviado = true;
@@ -116,204 +129,34 @@ export default {
           this.pedidoEnviado = false;
         }, 3000);
       } catch (err) {
-        console.error('Erro ao enviar pedido:', err);
+        console.error("Erro ao enviar pedido:", err);
       }
     },
-  }
-}
+    irParaHistorico() {
+      this.$router.push("/historico");
+    },
+  },
+};
 </script>
 
-
 <style scoped>
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 2rem;
-  background: #524f4f;
-  box-sizing: border-box;
-}
-
 .cardapio {
+  margin-top: 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: white;
+  /* Cor do card usa a variável do tema */
+  background-color: var(--color-background-soft);
   padding: 2rem;
   border-radius: 12px;
   max-width: 95vw;
   max-height: 90vh;
-  width: 100%;
+  width: 215%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow-y: auto;
-  font-family: 'Poppins', sans-serif;
-  color: #222;
-}
-
-.tabs {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 1rem;
-  gap: 0.5rem;
-}
-
-.tab {
-  display: inline-block;
-  text-decoration: none;     /* 🔴 remove o sublinhado */
-  color: inherit;            /* mantém a cor padrão do texto */
-  padding: 0.5rem 1rem;
-  border: none;
-  background: #fdd;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s;
-  font-family: inherit;
-}
-.tab {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: #fdd;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.tab.active {
-  background: #dfd;
-  font-weight: bold;
-}
-
-.categoria {
-  margin-top: 1rem;
-  font-style: italic;
-}
-
-.add-item {
-  align-self: flex-end;
-  margin-bottom: 1rem;
-}
-
-.item {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1rem 1.5rem;
-  margin-bottom: 1rem;
-  background-color: #f8f8f8;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  min-height: 120px; /* define uma altura mínima consistente */
-  width: 100%;       /* ocupa toda a largura disponível */
-  box-sizing: border-box;
-}
-
-.item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-}
-
-
-.info-produto {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.produto_do_cardapio {
-  margin: 0.25rem 0;
-  font-size: 1rem;
-  color: #333;
-}
-
-.info-produto h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #222;
-}
-
-.info-produto span {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #27ae60;
-  margin-top: 0.5rem;
-}
-.quantidade {
-  display: flex;
-  align-items: center;
-  gap: 1.0rem;
-  padding-top: 26px;
-}
-
-.quantidade button {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  background-color: #27ae60;
-  color: white;
-  font-size: 1.2rem;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.quantidade button:hover {
-  background-color: #219150;
-}
-
-.quantidade input {
-  width: 48px;
-  height: 32px;
-  padding: 0;               /* remove preenchimentos que desalinhariam */
-  text-align: center;       /* centraliza horizontalmente o texto */
-  line-height: 32px;        /* alinha verticalmente o texto no centro */
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fff;
-  color: #333;
-  box-sizing: border-box;   /* garante que padding não aumente o tamanho */
-}
-
-.quantidade input::-webkit-inner-spin-button,
-.quantidade input::-webkit-outer-spin-button {
-  -webkit-appearance: none; /* remove setinhas padrão no Chrome/Safari */
-  margin: 0;
-}
-
-.botoes {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 2rem;
-  gap: 1rem;
-}
-
-.btn {
-  background-color: #4CAF50; /* Verde bonito */
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  margin: 5px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.btn:hover {
-  background-color: #45a049;
-  transform: scale(1.03);
-}
-
-/* Estilo específico para o botão "Cancelar Pedido" */
-.btn:nth-of-type(3) {
-  background-color: #f44336;
-}
-.btn:nth-of-type(3):hover {
-  background-color: #d32f2f;
+  font-family: "Poppins", sans-serif;
+  /* Cor do texto principal usa a variável do tema */
+  color: var(--color-heading);
 }
 
 .cardapio h2 {
@@ -321,8 +164,16 @@ export default {
   font-weight: 600;
   margin-bottom: 1rem;
   text-align: center;
-  transform: scale(2);       /* dobra o tamanho */
-  transform-origin: top center;
+}
+
+.divisoria {
+  width: 100%;
+  max-width: 3300px;
+  border: none;
+  /* Cor da borda usa a variável do tema */
+  border-top: 2px solid var(--color-border);
+  margin: 1rem auto 2rem auto;
+  border-radius: 2px;
 }
 
 .tabs {
@@ -334,71 +185,176 @@ export default {
 }
 
 .tab {
-  padding: 0.8rem 2rem;              /* 🔹 aumenta altura e largura */
-  background: #f9d5d5;
+  padding: 0.8rem 1.5rem;
+  /* Cor de fundo padrão do tab usa a variável do tema */
+  background: var(--color-background-mute);
   border-radius: 12px;
   text-decoration: none;
-  font-size: 1.1rem;                 /* 🔹 fonte um pouco maior */
+  font-size: 1.1rem;
   font-weight: 500;
-  color: #333;
+  /* Cor do texto do tab usa a variável do tema */
+  color: var(--color-text);
   transition: all 0.3s ease;
-  border: 2px solid transparent;
-  min-width: 120px;                  /* 🔹 força largura mínima para esticar */
-  text-align: center;               /* 🔹 centraliza o texto */
+  border: 1px solid var(--color-border);
+  min-width: 120px;
+  text-align: center;
   display: inline-block;
+  cursor: pointer;
 }
 
 .tab:hover {
-  background: #f2baba;
-  transform: scale(1.05);
+  border-color: var(--color-border-hover);
+  transform: translateY(-2px);
 }
 
 .tab.active {
-  background: #d4f8d4;
+  /* Cor do tab ativo usa a cor primária (verde Vue) */
+  background: hsla(160, 100%, 37%, 0.2);
   font-weight: 600;
-  border-color: #45a049;
-  color: #1b5e20;
-  box-shadow: 0 0 0 2px rgba(69, 160, 73, 0.3); /* 🔹 leve destaque ao redor */
+  border-color: hsla(160, 100%, 37%, 1);
+  color: var(--color-heading);
 }
 
-.categoria {
-  font-size: 1.5rem;
-  font-style: italic;
-  margin-bottom: 1.5rem;
-  color: #444;
-  text-align: center;
-}
-
-.add-item {
-  align-self: flex-end;
-  margin-bottom: 1.5rem;
-}
-
-.divisoria {
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Alinhamento vertical melhorado */
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  /* Cor de fundo do item usa a variável do tema */
+  background-color: var(--color-background);
+  /* Cor da borda usa a variável do tema */
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
-  max-width: 3300px;
+  box-sizing: border-box;
+}
+
+.item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.info-produto {
+  flex: 1;
+  padding-right: 1rem;
+}
+
+.info-produto h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin: 0 0 0.25rem 0;
+}
+
+.info-produto p {
+  margin: 0.25rem 0;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.info-produto span {
+  font-size: 1rem;
+  font-weight: bold;
+  /* Cor de destaque usa a cor primária (verde Vue) */
+  color: hsla(160, 100%, 37%, 1);
+  margin-top: 0.5rem;
+}
+
+.quantidade {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.quantidade button {
+  width: 32px;
+  height: 32px;
   border: none;
-  border-top: 3px solid #444;
-  margin: 2rem auto 3rem auto;  /* espaçamento acima e abaixo */
-  border-radius: 999px;         /* arredondamento para suavizar */
+  border-radius: 8px;
+  /* Cor de destaque usa a cor primária (verde Vue) */
+  background-color: hsla(160, 100%, 37%, 1);
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.quantidade button:hover {
+  background-color: hsla(160, 100%, 30%, 1);
+}
+
+.quantidade input {
+  width: 48px;
+  height: 32px;
+  text-align: center;
+  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-background-soft);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+.quantidade input::-webkit-inner-spin-button,
+.quantidade input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.botoes {
+  display: flex;
+  justify-content: center; /* Centraliza os botões */
+  flex-wrap: wrap; /* Permite que quebrem a linha em telas pequenas */
+  margin-top: 2rem;
+  gap: 1rem;
+  width: 100%;
+}
+
+.btn {
+  background-color: hsla(160, 100%, 37%, 1);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn:hover {
+  background-color: hsla(160, 100%, 30%, 1);
+  transform: translateY(-2px);
+}
+
+.btn.cancelar {
+  /* Classe específica para o botão de cancelar */
+  background-color: #aa2e25; /* Um vermelho mais sóbrio */
+}
+.btn.cancelar:hover {
+  background-color: #c43a31;
 }
 
 .alert-overlay {
-  position: fixed;        /* fixa sobre a tela inteira */
-  top: 0; 
+  position: fixed;
+  top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.3); /* fundo semitransparente */
+  background-color: rgba(0, 0, 0, 0.4);
   display: flex;
-  justify-content: center; /* centraliza horizontalmente */
-  align-items: center;     /* centraliza verticalmente */
-  z-index: 9999;           /* fica acima de tudo */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
 }
 
 .alert-success {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: var(--color-background-soft);
+  color: var(--color-heading);
+  border: 1px solid var(--color-border-hover);
   padding: 2rem 3rem;
   border-radius: 16px;
   font-size: 1.5rem;
@@ -408,4 +364,3 @@ export default {
   animation: fadeInOut 2.5s ease-in-out;
 }
 </style>
-

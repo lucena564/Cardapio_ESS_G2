@@ -124,8 +124,7 @@ function refazerPedido(pedido: PedidoHistorico) {
   alert(
     `Redirecionando para a página de pedidos com os itens do pedido #${pedido.id_historico}! (Funcionalidade mock)`
   );
-  // Aqui, no futuro, você usaria o Vue Router para navegar para a página de pedidos,
-  // passando os itens do pedido como parâmetro.
+  // fiz um mock, tenho que integrar ainda
 }
 
 const { getHistoricoPorMesa, filtrarHistorico } = useApiService();
@@ -220,8 +219,7 @@ const aplicarFiltrosEBuscar = async () => {
   }
 };
 
-// --- WATCHER (OBSERVADOR) ---
-// Agora observa a data também!
+// Atualiza a lista de pedidos quando os filtros mudam
 let debounceTimer: number;
 watch(
   [termoBusca, statusSelecionados, dataSelecionada],
@@ -259,7 +257,6 @@ const executarBusca = async () => {
   // Se a busca estiver vazia, mostra todos os pedidos novamente
 
   try {
-    // Para simular uma busca "OU", fazemos duas chamadas em paralelo
     const buscaPorNome = filtrarHistorico("mesa_1", {
       nome_item: termoBusca.value,
     });
@@ -523,10 +520,10 @@ const executarBusca = async () => {
   background-color: var(--color-background-mute);
 }
 
-/* A MÁGICA: Quando o checkbox invisível está MARCADO (:checked),
+/* Quando o checkbox invisível está MARCADO (:checked),
    muda o estilo do span que vem logo depois (+) */
 .opcoes-filtro input[type="checkbox"]:checked + span {
-  background-color: hsla(160, 100%, 37%, 1); /* Cor verde do Vue */
+  background-color: hsla(160, 100%, 37%, 1);
   color: white;
   border-color: hsla(160, 100%, 37%, 1);
 }
@@ -556,8 +553,6 @@ const executarBusca = async () => {
   opacity: 1;
 }
 
-/* --- A MÁGICA DA ANIMAÇÃO "ACCORDION" PARA O RODAPÉ --- */
-/* Esta parte continua a mesma de antes, mas agora só afeta o rodapé */
 .detalhes-expansiveis {
   display: grid;
   grid-template-rows: 0fr;

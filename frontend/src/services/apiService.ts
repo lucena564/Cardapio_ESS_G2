@@ -27,7 +27,7 @@ export interface FiltrosHistorico {
 }
 
 export function useApiService() {
-  const baseUrl = "http://127.0.0.1:8000"; // Replace with your API URL
+  const baseUrl = "http://127.0.0.1:8000";
 
   async function fetchData() {
     try {
@@ -73,19 +73,16 @@ export function useApiService() {
     return response.data;
   }
 
-  // --- Funções de Pedidos ---
+  // --- Função de Pedidos ---
 
   async function fecharPedido(mesa: string) {
     const response = await axios.post(`${baseUrl}/pedidos/fechar/${mesa}`);
     return response.data;
   }
 
-  // ===============================================
-  // ===== RETORNO COM TODAS AS FUNÇÕES ======
-  // ===============================================
   return {
-    fetchData, // Função original preservada
-    // Novas funções adicionadas:
+    fetchData, // Função original
+    // Novas funções adicionadas para histórico:
     getHistoricoPorMesa,
     atualizarPedido,
     deletarPedidosDoHistorico,
