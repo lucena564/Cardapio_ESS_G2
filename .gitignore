@@ -4,3 +4,4 @@ __pycache__/
 *.log
 *.swp
 ess_venv
+order_history.json

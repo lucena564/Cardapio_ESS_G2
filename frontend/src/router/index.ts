@@ -15,6 +15,11 @@ const routes = [
   {
     path: '/',
     redirect: '/cardapio'
+  },
+  {
+      path: "/historico",
+      name: "historico",
+      component: () => import("../views/HistoricoView.vue"),
   }
 ]
 
@@ -23,4 +28,4 @@ const router = createRouter({
   routes
 })
 
-export default router
+export default router;
