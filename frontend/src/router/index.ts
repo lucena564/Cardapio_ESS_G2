@@ -1,31 +1,33 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Categoria from '../components/Cardapio.vue'
 import Mesa from '@/views/Mesa.vue'
-import AdminView from '../views/adminView.vue'
+import CardapioView from '@/views/CardapioView.vue'
+import AdminView from '@/views/adminView.vue'
+
 const routes = [
   {
     path: '/',
     name: 'Mesa',
-    component: Mesa,
+    component: Mesa
   },
   {
     path: '/cardapio/:categoria',
-    name: 'Categoria',
-    component: Categoria
+    name: 'Cardapio',
+    component: CardapioView
   },
   {
-    path: '/',
-    redirect: '/cardapio'
+    path: '/historico',
+    name: 'Historico',
+    component: () => import('@/views/HistoricoView.vue')
   },
   {
-      path: "/historico",
-      name: "historico",
-      component: () => import("../views/HistoricoView.vue"),
+    path: '/admin/items',
+    name: 'AdminItems',
+    component: AdminView
   },
+  // Qualquer rota inválida redireciona para /
   {
-      path: '/admin/items', 
-      name: 'admin-items',
-      component: AdminView
+    path: '/:pathMatch(.*)*',
+    redirect: '/'
   }
 ]
 
@@ -34,4 +36,4 @@ const router = createRouter({
   routes
 })
 
-export default router;
+export default router
