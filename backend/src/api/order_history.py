@@ -40,10 +40,6 @@ class OrderUpdate(BaseModel):
 class DeleteRequest(BaseModel):
     ids_historico: List[str]
 
-'''class OrderFilter(BaseModel):
-    tipo: str
-    valor:
-'''
 
 def ler_historico(caminho: str = Constants.HISTORY_FILE) -> List[dict]:
     """

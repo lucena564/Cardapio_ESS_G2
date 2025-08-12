@@ -10,7 +10,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": false,
+    "noImplicitAny": false
   },
   "files": [],
   "include": ["src", "cypress.config.ts"],
