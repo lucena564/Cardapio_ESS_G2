@@ -85,6 +85,7 @@ export default {
     pedidoStore() {
       return usePedidoStore();
     },
+    /** @returns {import("@/stores/categoryStore").PublicCategoryStore} */
     categoryStore() {
       return useCategoryStore();
     }
